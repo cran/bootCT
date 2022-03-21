@@ -1,0 +1,7 @@
+useDynLib(bootCT, .registration=TRUE)
+importFrom(Rcpp, evalCpp)
+importFrom(dplyr,"%>%","desc")
+importFrom(stats, "as.formula", "coef", "lm", "na.omit", "qnorm", "quantile", "residuals", "rnorm")
+importFrom(utils, "flush.console")
+exportPattern("^[[:alpha:]]+")
+S3method(summary,bootCT)
