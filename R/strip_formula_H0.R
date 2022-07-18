@@ -4,7 +4,6 @@
 #' @param H0 the null hypothesis to be tested
 #' @param case ARDL model case for the treatment of intercept and trend
 #' @param d number of variables
-#' @return a formula object deprived of the terms set to zero by the null hypothesis
 #' @keywords internal
 #' @export
 #'

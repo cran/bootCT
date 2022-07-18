@@ -15,7 +15,7 @@ boot_ardl(
   B = 2000,
   case = 3,
   crit.H0 = c(0.05, 0.025, 0.01),
-  print = TRUE
+  print = T
 )
 }
 \arguments{
@@ -54,10 +54,10 @@ List of several elements including \itemize{
 \item \code{quantFIND}: the bootstrap conditional and unconditional F Independent test critical value(s)}
 }
 \description{
-Bootstrap ARDL
+This is the main function of the package. It performs the bootstrap version of the ARDL bound test for cointegration.
 }
 \examples{
-\donttest{
+\dontrun{
 data(ger_macro)
 LNDATA = as.data.frame(log(ger_macro[,-1]))
 colnames(LNDATA) = c("LNINVEST","LNINCOME","LNCONS")

@@ -2,7 +2,7 @@
 % Please edit documentation in R/ardl_to_lm.R
 \name{ardl_to_lm}
 \alias{ardl_to_lm}
-\title{Convert an ARDL formula to a lm formula}
+\title{Convert ARDL to lm}
 \usage{
 ardl_to_lm(formula.ardl, case, d)
 }
@@ -13,10 +13,7 @@ ardl_to_lm(formula.ardl, case, d)
 
 \item{d}{number of variables}
 }
-\value{
-a formula object compatible with a linear model call
-}
 \description{
-Convert an ARDL formula to a lm formula
+Converts an ARDL formula to a lm formula
 }
 \keyword{internal}

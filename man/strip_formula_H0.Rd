@@ -15,9 +15,6 @@ strip_formula_H0(formula.ardl, H0, case, d)
 
 \item{d}{number of variables}
 }
-\value{
-a formula object deprived of the terms set to zero by the null hypothesis
-}
 \description{
 Removes the variables imposed under the null from an ARDL formula object
 }

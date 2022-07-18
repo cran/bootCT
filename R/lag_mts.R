@@ -1,5 +1,7 @@
 #' Create matrix of lagged variables
 #'
+#' This function lags a set of variables in a matrix, each with a separate index. It is also possible to retain only the last lag order.
+#'
 #' @param X numeric matrix whose columns are subject to lagging
 #' @param k vector of lag orders
 #' @param last.only If TRUE only the k-th order lag will be computed, otherwise all lags from 1 to k
@@ -15,8 +17,9 @@
 lag_mts =
   function(X,
            k,
-           last.only = FALSE) {
+           last.only = F) {
 
+    X = as.data.frame(X)
     n = nrow(X)
     d = ncol(X)
     if(length(k) < d){

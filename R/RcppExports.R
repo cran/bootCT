@@ -6,7 +6,7 @@
 #' @param r_in input residuals
 #' @param GAMMAX short run parameter matrices column bound, first row in conditional form
 #' @param A long-run parameter matrix, first row in conditional form
-#' @param start_z data matrix of starting point
+#' @param start_z data matrix of starting point 
 #' @param omegat parameter vector of the unlagged differences
 #' @param interc vecm intercept, first element in conditional form
 #' @param trend vecm trend, first element in conditional form

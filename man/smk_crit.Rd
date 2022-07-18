@@ -20,6 +20,6 @@ smk_crit
 \description{
 This internal data contains critical values of the Find test of Sam et al (2018), for several
 sample sizes and  lag orders. Applicable only for cases I, III, and V.
-Critical values at significance levels 1%, 2.5%, 5% and 10%.
+Critical values at significance levels 1\%, 2.5\%, 5\% and 10\%.
 }
 \keyword{datasets}

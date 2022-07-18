@@ -1,5 +1,7 @@
 #' Generate data from a VECM/ARDL equation
 #'
+#' This function generates a dataset following a VECM/ARDL model equation.
+#'
 #' @param nobs number of observations.
 #' @param case case related to intercept and trend
 #' @param sigma.in error covariance matrix.
@@ -115,11 +117,11 @@ sim_vecm_ardl =
     }
 
     if (!all(eigen(sigma.in)$values >= 0) |
-        !isSymmetric.matrix(sigma.in)) {
+        !isSymmetric(sigma.in)) {
       stop("Invalid covariance matrix.")
     }
 
-    if (class(gamma.in) != "list") {
+    if (!inherits(gamma.in,"list")) {
       stop("gamma.in must be a list.")
     }
 
@@ -173,11 +175,6 @@ sim_vecm_ardl =
 
     Id = diag(ncol(PI))
     F1 = Id - Reduce('+', gammax)
-
-
-    #conditional A first row
-    A.c = At[1,] - matrix(c(0, omegat %*% At[-1,-1]), nrow = 1)
-    F1.c = F1[1,] - matrix(c(0, omegat %*% F1[-1,-1]), nrow = 1)
 
     #VAR intercept
     vmu = mu.in * (case > 1)
@@ -325,8 +322,7 @@ sim_vecm_ardl =
     z=cbind(z,time=df.oss[(burn.in + Mlag + 1 + 1):nss,ncol(df.oss)])
     dz=cbind(dz,time=df.oss[(burn.in + Mlag + 1 + 1):nss,ncol(df.oss)])
 
-    return(
-      list(
+    return(list(
         dims = c(nrow(z), ncol(z)),
         case = case,
         data = z,

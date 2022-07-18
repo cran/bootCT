@@ -1,10 +1,11 @@
-#' Convert an ARDL formula to a lm formula
+#' Convert ARDL to lm
+#'
+#' Converts an ARDL formula to a lm formula
 #'
 #' @param formula.ardl the ARDL formula object
 #' @param case ARDL model case for the treatment of intercept and trend
 #' @param d number of variables
 #' @keywords internal
-#' @return a formula object compatible with a linear model call
 #' @export
 ardl_to_lm= function(formula.ardl,case,d){
   char.eqn=as.character(formula.ardl)
@@ -29,4 +30,3 @@ ardl_to_lm= function(formula.ardl,case,d){
 
   return(ans)
 }
-

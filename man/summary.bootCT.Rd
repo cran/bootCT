@@ -2,7 +2,7 @@
 % Please edit documentation in R/summary_bootCT.R
 \name{summary.bootCT}
 \alias{summary.bootCT}
-\title{Summarizing the ARDL bootstrap and asymptotic procedures}
+\title{Summary method}
 \usage{
 \method{summary}{bootCT}(object, ...)
 }
@@ -15,5 +15,5 @@
 the function returns a list of summary statistics, already present in the function \code{boot_ardl}, and displays them in an appropriate manner.
 }
 \description{
-Summarizing the ARDL bootstrap and asymptotic procedures
+This function summarizes the ARDL bootstrap test and all the other asymptotic procedures all together.
 }

@@ -1,5 +1,7 @@
 #' Bootstrap ARDL
 #'
+#' This is the main function of the package. It performs the bootstrap version of the ARDL bound test for cointegration.
+#'
 #' @param data Input dataset. Must contain a dependent and a set of independent variables.
 #' @param yvar Name of the dependent variable, enclosed in quotation marks. If NULL, the first variable will be used.
 #' @param Xvar Vector of names of the independent variables, each enclosed in quotation marks. If NULL, all variables except the first will be used.
@@ -24,7 +26,7 @@
 #'\item \code{quantFIND}: the bootstrap conditional and unconditional F Independent test critical value(s)}
 #'
 #' @examples
-#'\donttest{
+#'\dontrun{
 #' data(ger_macro)
 #' LNDATA = as.data.frame(log(ger_macro[,-1]))
 #' colnames(LNDATA) = c("LNINVEST","LNINCOME","LNCONS")
@@ -44,7 +46,7 @@ boot_ardl =
            B = 2000,
            case = 3,
            crit.H0 = c(0.05, 0.025, 0.01),
-           print = TRUE) {
+           print = T) {
 
     #SELECT ONLY NUMERIC COLUMNS AND ARRANGE y AND X
     dfnames = colnames(data)
@@ -177,8 +179,8 @@ boot_ardl =
       final_dlag = lag_mts(dlag0, k = difflags)
     }
 
-    df.ardl.l = list(df.ardl.c = (cbind(dlag0[, 1], lagdata, final_dlag, dlag0[, -1])),
-                     df.ardl.uc = (cbind(dlag0[, 1], lagdata, final_dlag)))
+    df.ardl.l = list(df.ardl.c = na.omit(cbind(dlag0[, 1], lagdata, final_dlag, dlag0[, -1])),
+                     df.ardl.uc = na.omit(cbind(dlag0[, 1], lagdata, final_dlag)))
 
     #EMPTY LISTS FOR OUTPUT
     mod.ardl.l = beta.ardl.l = omega.ardl.l = e.ardl.l = sigmae.ardl.l =
@@ -190,8 +192,7 @@ boot_ardl =
 
     #EMPTY OBJECTS FOR BOOT PROCEDURE
     F.overallc = t.depc = F.indc = matrix(0, nrow = 2, ncol = B)
-    quantFOV = quantFIND = quantt = matrix(0, nrow = length(crit.H0), ncol =
-                                             2)
+    quantFOV = quantFIND = quantt = matrix(0, nrow = length(crit.H0), ncol = 2)
 
     for (cond in 1:2) {
       formula.ardl = ardl_select$best_model$full_formula
@@ -259,10 +260,11 @@ boot_ardl =
         tstat = t.dep.os[[cond]],
         case = case,
         k = d - 1,
-        object.out = TRUE
+        object.out = T
       )
 
-      smk_crit=bootCT::smk_crit
+      smk_crit = bootCT::smk_crit
+      smk_test = NA
 
       nsmk = 81
       #SMK BOUND TEST ON INDEPENDENT
@@ -273,6 +275,8 @@ boot_ardl =
           check.nsmk = smk_crit$num[which.min(rem[rem > 0])]
           if (length(check.nsmk) == 0) {
             nsmk = 30
+          }else{
+            nsmk = check.nsmk
           }
         }
 
@@ -300,7 +304,7 @@ boot_ardl =
       }
 
       for (sh in c("fov", "t", "find")) {
-        H0 = sh
+        H0=sh
         #F OVERALL IMPOSING THE NULL
         if (H0 == "fov") {
           formula.ardl.H0 = strip_formula_H0(formula.ardl, H0, case, d)
@@ -392,6 +396,7 @@ boot_ardl =
           }
 
           if (case == 2) {
+            azero[1] = 0
             #INTERCEPT CONSTRAINED TO VECM
             hbeta.ardl.H0 = beta.ardl.H0[1:length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[1:length(beta.ardl.H0)]
@@ -414,6 +419,7 @@ boot_ardl =
           if (case == 4) {
             #TREND CONSTRAINED TO VECM
             azero[1] = beta.ardl.H0[1] #ARDL UNCONSTRAINED INTERCEPT
+            auno[1] = 0
             hbeta.ardl.H0 = beta.ardl.H0[2:length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[2:length(beta.ardl.H0)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -516,7 +522,7 @@ boot_ardl =
           }
 
           if (case == 1) {
-            ay.x = beta.ardl.H0[1:(d - 1)]
+            ay.x = -beta.ardl.H0[1:(d - 1)]
             hbeta.ardl.H0 = beta.ardl.H0[d:length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[d:length(beta.ardl.H0)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -526,7 +532,7 @@ boot_ardl =
           }
           if (case == 2) {
             azero[1] = 0
-            ay.x = beta.ardl.H0[1:(d - 1)]
+            ay.x = -beta.ardl.H0[1:(d - 1)]
             hbeta.ardl.H0 = beta.ardl.H0[d:length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[d:length(beta.ardl.H0)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -536,7 +542,7 @@ boot_ardl =
           }
           if (case == 3) {
             azero[1] = beta.ardl.H0[1]
-            ay.x = beta.ardl.H0[2:d]
+            ay.x = -beta.ardl.H0[2:d]
             hbeta.ardl.H0 = beta.ardl.H0[(d+1):length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[(d+1):length(beta.ardl.H0)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -547,7 +553,7 @@ boot_ardl =
           if (case == 4) {
             azero[1] = beta.ardl.H0[1]
             auno[1] = 0
-            ay.x = beta.ardl.H0[2:d]
+            ay.x = -beta.ardl.H0[2:d]
             hbeta.ardl.H0 = beta.ardl.H0[(d+1):length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[(d+1):length(beta.ardl.H0)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -558,7 +564,7 @@ boot_ardl =
           if (case == 5) {
             azero[1] = beta.ardl.H0[1]
             auno[1] = beta.ardl.H0[length(beta.ardl.H0)]
-            ay.x = beta.ardl.H0[2:d]
+            ay.x = -beta.ardl.H0[2:d]
             hbeta.ardl.H0 = beta.ardl.H0[(d+1):(length(beta.ardl.H0) - 1)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[(d+1):(length(beta.ardl.H0) - 1)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -574,7 +580,7 @@ boot_ardl =
         }
 
         if (H0 == "find") {
-          H0 = "find"
+
           formula.ardl.H0 = strip_formula_H0(formula.ardl, H0, case,d)
 
           mod.ardl.H0 = lm(formula.ardl.H0, data = df.ardl.l[[cond]]) #case III
@@ -650,7 +656,7 @@ boot_ardl =
           }
 
           if (case == 1) {
-            ayy = beta.ardl.H0[1]
+            ayy = -beta.ardl.H0[1]
             hbeta.ardl.H0 = beta.ardl.H0[2:length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[2:length(beta.ardl.H0)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -660,7 +666,7 @@ boot_ardl =
           }
           if (case == 2) {
             azero[1] = 0
-            ayy = beta.ardl.H0[1]
+            ayy = -beta.ardl.H0[1]
             hbeta.ardl.H0 = beta.ardl.H0[2:length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[2:length(beta.ardl.H0)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -670,7 +676,7 @@ boot_ardl =
           }
           if (case == 3) {
             azero[1] = beta.ardl.H0[1]
-            ayy = beta.ardl.H0[2]
+            ayy = -beta.ardl.H0[2]
             hbeta.ardl.H0 = beta.ardl.H0[3:length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[3:length(beta.ardl.H0)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -681,7 +687,7 @@ boot_ardl =
           if (case == 4) {
             azero[1] = beta.ardl.H0[1]
             auno[1] = 0
-            ayy = beta.ardl.H0[2]
+            ayy = -beta.ardl.H0[2]
             hbeta.ardl.H0 = beta.ardl.H0[3:length(beta.ardl.H0)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[3:length(beta.ardl.H0)]
             join_nameG = which(names(GAMMAX[1,]) %in% intersect(names(GAMMAX[1,]), names(hbeta.ardl.H0)))
@@ -692,7 +698,7 @@ boot_ardl =
           if (case == 5) {
             azero[1] = beta.ardl.H0[1]
             auno[1] = beta.ardl.H0[length(beta.ardl.H0)]
-            ayy = beta.ardl.H0[2]
+            ayy = -beta.ardl.H0[2]
             hbeta.ardl.H0 = beta.ardl.H0[3:(length(beta.ardl.H0) - 1)] *
               (summary(mod.ardl.H0)[[4]][, 4] < p.ardl)[3:(length(beta.ardl.H0) -
                                                              1)]
@@ -715,11 +721,11 @@ boot_ardl =
           resid.b = (dplyr::sample_n(
             as.data.frame(e.z),
             size = nrow(numdata) + vecmsel + 1,
-            replace = TRUE
+            replace = T
           ))
 
           #CENTER RESIDUALS
-          meanmat = matrix(rep(apply(resid.b, 2, mean), nrow(resid.b)), ncol = d, byrow = TRUE)
+          meanmat = matrix(rep(apply(resid.b, 2, mean), nrow(resid.b)), ncol = d, byrow = T)
           resid.b = resid.b - meanmat
 
           #TAKE FIRST OBSERVATIONS
@@ -728,7 +734,7 @@ boot_ardl =
           for (lsel in 1:(vecmsel + 1)) {
             lagdfm[[lsel]] = lag_mts(as.matrix(numdata),
                                      k = rep(lsel, d),
-                                     last.only = TRUE)
+                                     last.only = T)
             if (lsel == 1) {
               dlagdfm[[lsel]] = numdata - lagdfm[[(lsel)]]
             } else{
@@ -742,17 +748,15 @@ boot_ardl =
           start.z = gtools::na.replace(mat.start[1:(vecmsel + 1),], 0)
 
           #GENERATE DATA UNDER THE NULL
-          boot.data = gen_boot_ardl(
+          boot.data = boot_ardl_c(
             r_in = as.matrix(resid.b),
-            GAMMAX = GAMMAX*0,
+            GAMMAX = GAMMAX,
             A = A,
             interc = azero,
             trend = auno,
             start_z = as.matrix(start.z),
             omegat = omega.ardl.H0
           )$df[, 1:d]
-
-          boot.data
 
           #DATASET NAMES
           typev = c("dep", "ind")
@@ -847,8 +851,7 @@ boot_ardl =
                                                                                             1 * (case > 1)), (1 + 1 * (case > 1))]))
           }
           if (H0 == "find") {
-            wtestfi = aod::wald.test(Sigmabeta.ardl.b, beta.ardl.b, Terms = ((2:d) +
-                                                                               ((case > 1) * 1)))
+            wtestfi = aod::wald.test(Sigmabeta.ardl.b, beta.ardl.b, Terms = ((2:d) + ((case > 1) * 1)))
             F.indc[cond, b] = wtestfi$result$chi2[1] / wtestfi$result$chi2[2]
           }
 

@@ -3,7 +3,7 @@
 #'
 #' This internal data contains critical values of the Find test of Sam et al (2018), for several
 #' sample sizes and  lag orders. Applicable only for cases I, III, and V.
-#' Critical values at significance levels 1%, 2.5%, 5% and 10%.
+#' Critical values at significance levels 1\%, 2.5\%, 5\% and 10\%.
 #'
 #' @format {A data frame with 144 rows and 17 variables}
 #' \describe{
@@ -13,7 +13,7 @@
 #'   \item{I0_x}{right threshold for accepting the null of zero coefficients in the Find test. x: 1 to 7}
 #'   \item{I1_x}{left threshold for rejecting the null of zero coefficients in the Find test. x: 1 to }
 #' }
-#' 
+#'
 smk_crit=data.frame(
 case = rep(c(1,3,5),each=48),
 prob=rep(rep(c(0.01,0.025,0.05,0.1),each=12),3),

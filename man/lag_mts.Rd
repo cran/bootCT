@@ -4,7 +4,7 @@
 \alias{lag_mts}
 \title{Create matrix of lagged variables}
 \usage{
-lag_mts(X, k, last.only = FALSE)
+lag_mts(X, k, last.only = F)
 }
 \arguments{
 \item{X}{numeric matrix whose columns are subject to lagging}
@@ -17,7 +17,7 @@ lag_mts(X, k, last.only = FALSE)
 a matrix whose columns are the original variables and the k-th order lagged variables. Column name suffix ".lx".
 }
 \description{
-Create matrix of lagged variables
+This function lags a set of variables in a matrix, each with a separate index. It is also possible to retain only the last lag order.
 }
 \examples{
 

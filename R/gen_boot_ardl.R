@@ -7,7 +7,6 @@
 #' @param omegat parameter vector implied in conditioning
 #' @param interc intercept vector
 #' @param trend trend vector
-#' @return No return value, calls cpp function \code{boot_ardl_c}
 #' @keywords internal
 #' @export
 gen_boot_ardl = function(r_in,
@@ -17,6 +16,6 @@ gen_boot_ardl = function(r_in,
                          omegat,
                          interc,
                          trend){
-
+  
   return(.Call(`_bootCT_boot_ardl_c`, r_in, GAMMAX,A,start_z,omegat,interc,trend))
-}
+} 

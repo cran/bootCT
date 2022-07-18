@@ -21,9 +21,6 @@ gen_boot_ardl(r_in, GAMMAX, A, start_z, omegat, interc, trend)
 
 \item{trend}{trend vector}
 }
-\value{
-No return value, calls cpp function \code{boot_ardl_c}
-}
 \description{
 Call to cpp function to generate data following a conditional ARDL/VECM model
 }

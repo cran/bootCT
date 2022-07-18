@@ -13,9 +13,6 @@ strip_formula_UC(formula.ardl, case, d)
 
 \item{d}{number of variables}
 }
-\value{
-a formula object deprived of the unlagged difference terms
-}
 \description{
 Removes the unlagged differences imposed under the conditional ARDL model
 }

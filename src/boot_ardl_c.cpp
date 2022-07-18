@@ -3,7 +3,7 @@
 //' @param r_in input residuals
 //' @param GAMMAX short run parameter matrices column bound, first row in conditional form
 //' @param A long-run parameter matrix, first row in conditional form
-//' @param start_z data matrix of starting point
+//' @param start_z data matrix of starting point 
 //' @param omegat parameter vector of the unlagged differences
 //' @param interc vecm intercept, first element in conditional form
 //' @param trend vecm trend, first element in conditional form
@@ -27,22 +27,22 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
 
   Rcpp::Environment base("package:base");
   Rcpp::Function intersect = base["intersect"];
-
+  
   arma::mat ut = r_in;
-
+  
   //PI matrix
   arma::mat PIM = -A;
-
+    
   int nvdi= r_in.n_cols;
   int nss = r_in.n_rows;
   int MAXl = GAMMAX.n_cols/A.n_cols;
-
+  
   //PSI matrix
   arma::rowvec psi = GAMMAX.row(0);
-
+  
   //ay.x
   arma::rowvec ayx = PIM.row(0);
-
+  
   //error conditional
   arma::vec e_cond = r_in.col(0);
 
@@ -50,33 +50,34 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
 
   arma::mat df_oss (nss, (2 * nvdi + nvdi * (MAXl+1) + 1),fill::zeros);
   df_oss.rows(0,nstart-1) = start_z;
-
-  //0_1 level or difference
+  
+  //0_1
   Rcpp::Range tv = Rcpp::seq(0,1);
-  //1_2_..._(d-1)
+  //1_2
   Rcpp::Range nind = Rcpp::seq(1,nvdi-1);
-  //0_1_..._(maxlag)
+  //0_1_2
   Rcpp::Range nlag = Rcpp::seq(0,MAXl);
-
+  
+  //2*3*2 = 12
   int dimtot = tv.size()*nlag.size()*nind.size();
 
-  //level patterns
+  //12*4 patterns in livello
   arma::mat lev_patterns(dimtot,4,fill::zeros);
-  //diff patterns
+  //12*4 patterns in differenza
   arma::mat diff_patterns(dimtot,4,fill::zeros);
   int t = 0;
-  for(int i=0; i < nlag.size(); ++i){ // lagdiff loop
-    for(int j=1; j <= nind.size(); ++j){ //indep loop
-      for(int k=0; k < tv.size(); ++k){ //level or difference
-
-        //index vector
+  for(int i=0; i < nlag.size(); ++i){ // ciclo 0_1_2 lags
+    for(int j=1; j <= nind.size(); ++j){ //ciclo 1_2 indip
+      for(int k=0; k < tv.size(); ++k){ //ciclo 0_1 tv
+        
+        //creo vettore indice
         arma::rowvec idx(4,fill::zeros);
-        //create pattern combinations e.g. tv = 0, ind = 1, lag = 0
+        //contiene il pattern es. tv = 0, ind = 1, lag = 0
         idx(1) = k;
         idx(2) = j;
         idx(3) = i;
         if(!(k==0 && j>1)){
-          //need all the lags
+          //mi servono tutti i lag
           lev_patterns.row(t) = idx;
           diff_patterns.row(t) = idx;
           t++;
@@ -87,7 +88,7 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
 
   lev_patterns.shed_rows(t,lev_patterns.n_rows-1);
   arma::mat lev_patternsx=lev_patterns;
-
+  
   diff_patterns.shed_rows(PIM.n_cols*(MAXl+1),diff_patterns.n_rows-1);
   if(MAXl>1){
     lev_patterns.shed_rows(PIM.n_cols*2,lev_patterns.n_rows-1);
@@ -106,6 +107,7 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
 //third column: from 1 to J; 1 only for dep, 1:J for ind
 //fourth column: from 0 to I lags,
 //               lag0 and lag1 for levels, lag_i 0<i<I for diffs
+//last row = constant (-1)
   arma::uvec criteria_in;
   arma::uvec criteria_out;
   arma::uvec criteria1 = find(patterns.col(0) == 1);
@@ -126,10 +128,9 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
    arma::uvec criteriainst = find(patterns.col(3) == 0);
    arma::uvec criteria_dindinst = Rcpp::as<arma::uvec>(intersect(intersect(criteriaind,criteriainst),criteriad));
 
-   // index vectors will help in reconstructing the matrix
    for(int w = nstart ; w < nss; ++w){
        if(w > 1){
-          //shift at previous loop step moving observations in lagged rows
+          //shift delle osservazioni al passo precedente
           for(int j = 0; j < MAXl; j++){
              for(int n = 1; n <= MAXl;n++){
                criteria_out = find(patterns.col(3) == j);
@@ -146,49 +147,47 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
           }
           }
    arma::uvec row_sel(1);
-
-//marginal VECM model for X
+ 
+//riempimento colonne per modello marginale x di ARDL
    row_sel(0) = w;
-//selecting Z variables difflag
+//seleziono variabili diff in lag per z
    arma::rowvec v_dlag = df_oss.submat(row_sel,criteria_dl);
-   //selecting Z variables lagged levels
+//seleziono variabili lagged levels per z
    arma::rowvec v_lag = df_oss.submat(row_sel,criteria_lvll);
-   //selecting X variables unlagged diffs
+//diff istantanee delle x
    arma::rowvec idx0(nvdi);
    for(int j = 0; j < nvdi; ++j){
       idx0(j) = w;
     }
-   //filling marginal VECM model for X
    df_oss.submat(row_sel,criteria_dindinst)=
      ut.submat(w,1,w,(nvdi-1)) +
      interc.subvec(1,(nvdi-1)).t() +
-     (trend.subvec(1,(nvdi-1)).t())%idx0.subvec(1,(nvdi-1))+ //error + trend + intercept X
-     v_dlag*(GAMMAX.rows(1,GAMMAX.n_rows-1)).t()+ //difflag Z
-     v_lag*(PIM.rows(1,PIM.n_rows-1)).t(); //lag levels X
-
-   //levels X
+     (trend.subvec(1,(nvdi-1)).t())%idx0.subvec(1,(nvdi-1))+ //errore + trend + intercetta per x
+     v_dlag*(GAMMAX.rows(1,GAMMAX.n_rows-1)).t()+ //diff in lag per z
+     v_lag*(PIM.rows(1,PIM.n_rows-1)).t(); //lag levels per z lungo periodo
+   
+   //levels per x
    df_oss.submat(w,1,w,(nvdi-1)) =
-     df_oss.submat(w-1,1,w-1,(nvdi-1))+ //previous row
-     df_oss.submat(row_sel,criteria_dindinst); //current row
+     df_oss.submat(w-1,1,w-1,(nvdi-1))+ //riga precedente
+     df_oss.submat(row_sel,criteria_dindinst); //riga appena creata
 
-   //selecting X variables unlagged diffs
+   //seleziono variabili diff istantanee per x
    arma::rowvec x_diff = df_oss(row_sel,criteria_dindinst);
 
-   //filling conditional ARDL model for y
+   //riempimento colonne per modello CONDIZIONATO y di ARDL
    vec newy =
-     e_cond(w) + //conditional error
-     interc.at(0) + //conditional intercept
-     trend.at(0) + //conditional trend
-     (v_lag)*ayx.t() + //conditional long-run
-     x_diff*omegat + //conditional unlagged diffs
-     v_dlag*psi.t(); //conditional lagged diffs
-
+     e_cond(w) + //errore in formulazione condizionata
+     interc.at(0) + // intercept conditional
+     trend.at(0) + //trend conditional
+     (v_lag)*ayx.t() +  //relazione di lungo periodo in formulazione condizionata
+     x_diff*omegat + //differenze istantanee x in formulazione condizionata
+     v_dlag*psi.t(); //diff in lag per z in formulazione condizionata
    df_oss.at(w,(2*nvdi)) = newy(0);
 
-   //levels y
+   //levels per y
    df_oss.at(w,0) =
-     df_oss.at(w-1,0) + //previous row
-     df_oss.at(w,(2*nvdi)); //current row
+     df_oss.at(w-1,0) + //riga precedente
+     df_oss.at(w,(2*nvdi)); //riga appena creata
 }
 
    return Rcpp::List::create(
