@@ -1,7 +1,5 @@
 #' Generate data from a VECM/ARDL equation
 #'
-#' This function generates a dataset following a VECM/ARDL model equation.
-#'
 #' @param nobs number of observations.
 #' @param case case related to intercept and trend
 #' @param sigma.in error covariance matrix.
@@ -117,7 +115,7 @@ sim_vecm_ardl =
     }
 
     if (!all(eigen(sigma.in)$values >= 0) |
-        !isSymmetric(sigma.in)) {
+        !isSymmetric.matrix(sigma.in)) {
       stop("Invalid covariance matrix.")
     }
 
@@ -347,3 +345,4 @@ sim_vecm_ardl =
       )
     )
   }
+

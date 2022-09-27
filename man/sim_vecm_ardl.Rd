@@ -72,7 +72,7 @@ A list that includes \itemize{
 \item \code{veta}: the VAR trend}
 }
 \description{
-This function generates a dataset following a VECM/ARDL model equation.
+Generate data from a VECM/ARDL equation
 }
 \examples{
 #PARAMETERS

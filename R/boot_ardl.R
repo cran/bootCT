@@ -48,6 +48,11 @@ boot_ardl =
            crit.H0 = c(0.05, 0.025, 0.01),
            print = T) {
 
+    if(!any(inherits(data,"data.frame"))){
+      warning("Not a data frame object, converting")
+      data=data.frame(data)
+    }
+
     #SELECT ONLY NUMERIC COLUMNS AND ARRANGE y AND X
     dfnames = colnames(data)
     if (is.null(yvar)) {
