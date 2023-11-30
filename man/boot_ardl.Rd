@@ -7,14 +7,17 @@
 boot_ardl(
   data,
   yvar = NULL,
-  Xvar = NULL,
-  difflags = NULL,
+  xvar = NULL,
+  fix.ardl = NULL,
+  info.ardl = "AIC",
+  fix.vecm = NULL,
+  info.vecm = "AIC",
   maxlag = 5,
-  p.ardl = 0.05,
-  p.vecm = 0.05,
-  B = 2000,
+  a.ardl = 0.05,
+  a.vecm = 0.05,
+  nboot = 2000,
   case = 3,
-  crit.H0 = c(0.05, 0.025, 0.01),
+  a.boot.H0 = c(0.05, 0.025, 0.01),
   print = T
 )
 }
@@ -23,35 +26,45 @@ boot_ardl(
 
 \item{yvar}{Name of the dependent variable, enclosed in quotation marks. If NULL, the first variable will be used.}
 
-\item{Xvar}{Vector of names of the independent variables, each enclosed in quotation marks. If NULL, all variables except the first will be used.}
+\item{xvar}{Vector of names of the independent variables, each enclosed in quotation marks. If NULL, all variables except the first will be used.}
 
-\item{difflags}{Fixed lagged differences for the short term part of the ARDL equation.}
+\item{fix.ardl}{Fixed lagged differences for the short term part of the ARDL equation.}
 
-\item{maxlag}{Max number of lags for the auto_ardl procedure.}
+\item{info.ardl}{Selection criterion for the auto_ardl function. Options are "AIC", "AICc", BIC, "R2", "adjR2", if fix.ardl is null. Defaults to AIC.}
 
-\item{p.ardl}{Threshold p-value for the short-term ARDL coefficients significance in the bootstrap procedure.}
+\item{fix.vecm}{Fixed lagged differences for the short term part of the VECM equation.}
 
-\item{p.vecm}{Threshold p-value for the short-term VECM coefficients significance in the bootstrap procedure.}
+\item{info.vecm}{Selection criterion for the VARselect function. Options are "AIC", "HQ", "SC", "FPE", if fix.vecm is null. Defaults to AIC.}
 
-\item{B}{Number of bootstrap replications.}
+\item{maxlag}{Max number of lags for the auto_ardl  and VARselect procedures, if fix.ardl or fix.vecm are null, respectively.}
+
+\item{a.ardl}{Threshold significance for the short-term ARDL coefficients significance.}
+
+\item{a.vecm}{Threshold significance for the short-term VECM coefficients significance.}
+
+\item{nboot}{Number of bootstrap replications.}
 
 \item{case}{Model case, pertaining to the treatment of intercept and trend. Must be integer from 1 to 5. Defaults to 3.}
 
-\item{crit.H0}{Probability/ies by which the critical quantiles of the bootstrap distribution(s) must be calculated.}
+\item{a.boot.H0}{Probability/ies by which the critical quantiles of the bootstrap distribution(s) must be calculated.}
 
 \item{print}{Show the progress bar.}
 }
 \value{
 List of several elements including \itemize{
-\item \code{ARDL}: the conditional and unconditional ARDL models applied on the data
+\item \code{data}: the data used to perform estimation and testing
+\item \code{ARDL}: the estimated ARDL conditional model
+\item \code{VECM}: the estimated VECM unconditional model
+\item \code{jo.testX}: Johansen cointegration test on the independent variables
 \item \code{pssbounds}: the PSS bound test output
 \item \code{smgbounds}: the SMG bound test critical values
-\item \code{fov.st}: the test statistics on the conditional and unconditional Fov tests
-\item \code{t.st}: the test statistics on the conditional and unconditional t tests
-\item \code{find.st}: the test statistics on the conditional and unconditional Find tests
-\item \code{quantFOV}: the bootstrap conditional and unconditional F Overall test critical value(s)
-\item \code{quantt}: the bootstrap conditional and unconditional t test critical value(s)
-\item \code{quantFIND}: the bootstrap conditional and unconditional F Independent test critical value(s)}
+\item \code{fov.stat}: the test statistics on the conditional Fov tests
+\item \code{t.stat}: the test statistics on the conditional t test
+\item \code{find.stat}: the test statistics on the conditional Find tests
+\item \code{quantfov}: the bootstrap conditional F Overall test critical value(s)
+\item \code{quantt}: the bootstrap conditional t-test critical value(s)
+\item \code{quantfind}: the bootstrap conditional F Independent test critical value(s)
+\item \code{fakecoint}: indication of the situation in which \eqn{a_{y.x}\neq 0} but \eqn{a_{y.x}^{UC}=0}, signaling absence of cointegration.}
 }
 \description{
 This is the main function of the package. It performs the bootstrap version of the ARDL bound test for cointegration.
@@ -62,7 +75,9 @@ data(ger_macro)
 LNDATA = as.data.frame(log(ger_macro[,-1]))
 colnames(LNDATA) = c("LNINVEST","LNINCOME","LNCONS")
 
-boot_res = boot_ardl(LNDATA, yvar = "LNINCOME", Xvar = c("LNCONS","LNINVEST"), maxlag = 5, B = 2000)
+boot_res = boot_ardl(data=LNDATA,
+                     yvar = "LNINCOME", xvar = c("LNCONS","LNINVEST"),
+                     maxlag = 5, nboot = 2000)
 summary(boot_res)
 }
 }

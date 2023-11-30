@@ -2,16 +2,16 @@
 #'
 #' @param nobs number of observations.
 #' @param case case related to intercept and trend
-#' @param sigma.in error covariance matrix.
-#' @param gamma.in list of short-run parameter matrices
-#' @param Axx.in long-run relationships between the independent variables
-#' @param ayxUC.in long-run unconditional relationship between dependent and independent variables, \eqn{\mathbf a_{yx}^{(UC)}} .
+#' @param sigma.in error covariance matrix \eqn{\boldsymbol\Sigma}
+#' @param gamma.in list of VECM short-run parameter matrices \eqn{\boldsymbol\Gamma_j}
+#' @param axx.in long-run relationships between the independent variables \eqn{\mathbf A_{xx}}
+#' @param ayx.uc.in long-run unconditional relationship between dependent and independent variables, \eqn{\mathbf a_{yx}^{(UC)}}.
 #' The second component ayxC, derived from conditioning, is calculated as\eqn{\mathbf a_{yx}^{(C)}= - \boldsymbol\omega'\mathbf A_{xx}}
 #' @param ayy.in long-run relationship for the dependent variable \eqn{a_{yy}}
-#' @param mu.in VAR intercept vector
-#' @param eta.in VAR trend vector
-#' @param azeroy.in Conditional ARDL intercept. Overridden if CASE I or CASE II
-#' @param aoney.in Conditional ARDL trend. Overridden if CASE IV
+#' @param mu.in VAR intercept vector \eqn{\boldsymbol\mu} (CASE II)
+#' @param eta.in VAR trend vector \eqn{\boldsymbol\eta} (CASE IV)
+#' @param azero.in VECM intercept \eqn{\boldsymbol{\alpha}_{0}} (CASE III-IV-V)
+#' @param aone.in VECM trend \eqn{\boldsymbol{\alpha}_{1}} (CASE V)
 #' @param burn.in burn-in number of observations
 #' @param seed.in optional seed number for random error generation.
 #'
@@ -23,16 +23,14 @@
 #'\item \code{ut}: the generated random error matrix.
 #'\item \code{sigma}: the error covariance matrix \eqn{\boldsymbol\Sigma}.
 #'\item \code{omega}: the \eqn{\boldsymbol\omega} vector of parameters generated via conditioning
-#'\item \code{At}: the conditional long-run parameter matrix \eqn{\tilde{\mathbf A}}
+#'\item \code{at}: the conditional long-run parameter matrix \eqn{\tilde{\mathbf A}}
 #'\item \code{ayx1}: the unconditional subvector of the ARDL equation \eqn{\mathbf a_{y.x}^{UC}}
 #'\item \code{ayx}: the conditional subvector of the ARDL equation \eqn{a_{y.x}=a_{y.x}^{UC}-\omega'A_{xx}}
 #'\item \code{gammalist}: the list of unconditional \eqn{\boldsymbol\Gamma_j} parameter matrices
 #'\item \code{psilist}: the list of conditional \eqn{\boldsymbol\psi_{y.x,j}} parameter matrices
 #'\item \code{azero}: the unconditional VECM intercept
-#'\item \code{azero.c}: the conditional VECM intercept
 #'\item \code{interc.ardl}: the conditional ARDL intercept
 #'\item \code{aone}: the unconditional VECM trend
-#'\item \code{aone.c}: the conditional VECM trend
 #'\item \code{interc.ardl}: the conditional ARDL trend
 #'\item \code{vmu}: the VAR intercept
 #'\item \code{veta}: the VAR trend}
@@ -44,27 +42,27 @@
 #'corrm[2,1] = 0.25
 #'corrm[3,1] = 0.4
 #'corrm[3,2] = -0.25
-#'Corrm = (corrm + t(corrm)) + diag(3)
+#'corrs = (corrm + t(corrm)) + diag(3)
 #'sds = diag(c(1.3, 1.2, 1))
-#'Sigma = (sds %*% Corrm %*% t(sds))
+#'sigma = (sds %*% corrs %*% t(sds))
 #'
 #'#Gamma
-#'gammax=list()
+#'gammax = list()
 #'gammax[[1]] = matrix(c(0.6, 0, 0.2, 0.1, -0.3, 0, 0, -0.3, 0.2), nrow = 3, ncol = 3, byrow = TRUE)
 #'gammax[[2]] = matrix(c(0.2, 0, 0.1, 0.05, -0.15, 0, 0, 0, 0.1), nrow = 3, ncol = 3, byrow = TRUE)
 #'
 #'#DATA GENERATION
 #'data_sim = sim_vecm_ardl(nobs = 200,
 #'                          case = 3,
-#'                          sigma.in = Sigma,
+#'                          sigma.in = sigma,
 #'                          gamma.in = gammax,
-#'                          Axx.in = matrix(c(0.3, 0.5, 0.4, 0.3), nrow = 2, ncol = 2),
-#'                          ayxUC.in = c(0.5,0.6),
+#'                          axx.in = matrix(c(0.3, 0.5, 0.4, 0.3), nrow = 2, ncol = 2),
+#'                          ayx.uc.in = c(0.5,0.6),
 #'                          ayy.in = 0.7,
 #'                          mu.in = rep(0.3, 3),
 #'                          eta.in = rep(0, 3),
-#'                          azeroy.in = 0.4,
-#'                          aoney.in = 0,
+#'                          azero.in = rep(0.4, 3),
+#'                          aone.in = rep(0, 3),
 #'                          burn.in = 50,
 #'                          seed.in = 10)
 #'
@@ -74,14 +72,14 @@ sim_vecm_ardl =
            case = 1,
            sigma.in = diag(3),
            gamma.in,
-           Axx.in,
-           ayxUC.in,
+           axx.in,
+           ayx.uc.in,
            ayy.in,
            mu.in,
            eta.in,
-           azeroy.in = 0,
-           aoney.in = 0,
-           burn.in,
+           azero.in,
+           aone.in,
+           burn.in = nobs * 0.5,
            seed.in = NULL){
 
     if (case < 1 | case > 5 | case %% 1 != 0) {
@@ -95,22 +93,22 @@ sim_vecm_ardl =
     }
 
     if (case == 1 &&
-        (any(mu.in != 0) || any(eta.in != 0) || azeroy.in != 0 || aoney.in != 0)) {
-      warning("CASE I implies no intercept and no trend, parameter values overridden")
+        (any(mu.in != 0) || any(eta.in != 0) || any(azero.in != 0) || any(aone.in != 0))) {
+      stop("CASE I implies no intercept and no trend, please check parameter values")
     }
 
     if (case == 2 &&
-        (any(eta.in != 0) || azeroy.in != 0 || aoney.in != 0)) {
-      warning("CASE II implies restricted intercept and no trend, parameter values overridden")
+        (any(eta.in != 0) || any(azero.in != 0) || any(aone.in != 0))) {
+      stop("CASE II implies restricted intercept and no trend, please check parameter values")
     }
 
-    if (case == 3 && (any(eta.in != 0) || aoney.in != 0)) {
-      warning("CASE III implies unrestricted intercept and no trend, parameter values overridden.")
+    if (case == 3 && (any(eta.in != 0) || any(aone.in != 0))) {
+      stop("CASE III implies unrestricted intercept and no trend, please check parameter values.")
     }
 
-    if (case == 4 && (aoney.in != 0)) {
-      warning(
-        "CASE IV implies unrestricted intercept and restricted trend, parameter values overridden."
+    if (case == 4 && (any(aone.in != 0))) {
+      stop(
+        "CASE IV implies unrestricted intercept and restricted trend, please check parameter values."
       )
     }
 
@@ -123,14 +121,6 @@ sim_vecm_ardl =
       stop("gamma.in must be a list.")
     }
 
-    if (length(azeroy.in) > 1 || length(aoney.in) > 1) {
-      warning(
-        "Intercept / trend values of conditional ARDL model must be scalar. Using their first element."
-      )
-      azeroy.in = azeroy.in[1]
-      aoney.in = aoney.in[1]
-    }
-
     cs = ncol(sigma.in)
     rs = nrow(sigma.in)
 
@@ -138,10 +128,21 @@ sim_vecm_ardl =
     rg = unlist(lapply(gamma.in, nrow))
     dmu = length(mu.in)
     deta = length(eta.in)
+    dazero = length(azero.in)
+    daone = length(aone.in)
+    da1 = length(ayy.in)+length(ayx.uc.in)
+    da2 = length(ayy.in)+ncol(axx.in)
+    da3 = length(ayy.in)+nrow(axx.in)
+    
+    if(length(ayy.in)!=1){
+      stop("Invalid ayy entry, must be a scalar")
+    }
 
-    dims = c(cs, rs, cg, rg, dmu, deta)
+    dims = c(cs, rs, cg, rg, dmu, deta, dazero, daone, da1, da2, da3)
+    
+    dimsval=dims[dims>0]
 
-    if (length(unique(dims)) != 1) {
+    if (length(unique(dimsval)) != 1) {
       stop("dimensions of input elements do not match.")
     }
 
@@ -149,7 +150,7 @@ sim_vecm_ardl =
       set.seed(seed.in)
       }
 
-    d = unique(dims)
+    d = unique(dimsval)
 
     sigma = sigma.in
     gammax = gamma.in
@@ -162,46 +163,32 @@ sim_vecm_ardl =
         omegat %*% matrix(gammax[[j]][-1,], nrow = (d - 1), ncol = d)
     }
 
-    Axx = Axx.in
-    ayx1 = ayxUC.in
+    Axx = axx.in
+    ayx1 = ayx.uc.in
     ayx2 = omegat %*% Axx
     ayx = ayx1 - ayx2
     Ax = rbind(ayx1, Axx)
-    At = cbind(c(ayy.in, rep(0, d - 1)), Ax)
-
-    PI = -At
-
-    Id = diag(ncol(PI))
-    F1 = Id - Reduce('+', gammax)
-
+    At= cbind(c(ayy.in, rep(0, d - 1)), Ax)
+    F1 = diag(d) - Reduce('+', gammax)
+    
     #VAR intercept
     vmu = mu.in * (case > 1)
     veta = eta.in * (case > 3)
 
     #unconditional VECM intercept
-    azero = -PI %*% vmu + (PI + F1) %*% veta
-    aone = -PI %*% veta
-
-    azero.c0 = azero
-    aone.c0 = aone
+    azero = (At %*% vmu) * (case == 2) + azero.in * (case > 2)
+    aone = (At %*% veta) * (case == 4) + aone.in * (case == 5)
 
     # conditional A first row
     A.c = At[1,] - matrix(c(0, omegat %*% At[-1,-1]), nrow = 1)
     F1.c = F1[1,] - matrix(c(0, omegat %*% F1[-1,-1]), nrow = 1)
 
-    #conditional ARDL intercept
-    if (case == 2) {
-      azero.c0[1] =  A.c[1, ] %*% vmu + (A.c[1, ] + F1.c[1, ]) %*% veta
-    } else{
-      azero.c0[1] = azeroy.in
-    }
-
-    if (case == 4) {
-      aone.c0[1] = A.c[1,] %*% veta
-    } else{
-      aone.c0[1] = aoney.in
-    }
-
+    #conditional VECM intercept
+    azero.c0 = azero 
+    aone.c0 = aone
+    azero.c0[1] = azero[1] - omegat %*% azero[-1]
+    aone.c0[1] = aone[1] - omegat %*% aone[-1]
+    
     nss = nobs + burn.in + Mlag + 1
 
     ut = matrix(rnorm(n = nss * d), nss, d) %*% chol(sigma)
@@ -258,6 +245,7 @@ sim_vecm_ardl =
       if (w > 2) {
         for (j in 0:Mlag - 1) {
           for (n in 1:Mlag) {
+            
             df.oss[w, stringr::str_detect(cnames, paste0("^d_(.*)[", j + n, "]$"))] =
               df.oss[w - n, stringr::str_detect(cnames, paste0("^d_(.*)[", j, "]$"))]
             df.oss[w, stringr::str_detect(cnames, paste0("^(?!d_)(.*)[", j + n, "]$"))] =
@@ -278,8 +266,8 @@ sim_vecm_ardl =
         azero[-1] + aone[-1] * (w - burn.in - Mlag - 1) + ut[w,-1] +   #errore + trend + intercetta per x
         do.call(cbind, gammax)[-1,] %*% matrix(as.numeric(v.dlag),
                                                nrow = ncol(v.dlag),
-                                               ncol = 1) + #diff in lag per z
-        PI[-1,] %*% matrix(as.numeric(v.lag),
+                                               ncol = 1) - #diff in lag per z
+        At[-1,] %*% matrix(as.numeric(v.lag),
                            nrow = ncol(v.lag),
                            ncol = 1) #lag levels per z lungo periodo
 
@@ -313,6 +301,7 @@ sim_vecm_ardl =
 
     #level variables matrix
     z = df.oss[(burn.in + Mlag + 1 + 1):nss, stringr::str_detect(cnames, "^(?!d_)(.*)[_0]$")]
+
     #diff variables matrix
     dz = df.oss[(burn.in + Mlag + 1 + 1):nss, stringr::str_detect(cnames, "^(d_)(.*)[_0]$")]
 
@@ -326,20 +315,19 @@ sim_vecm_ardl =
         data = z,
         diffdata = dz,
         ut = ut,
-        Sigma = sigma,
+        sigma = sigma,
         omega = omegat,
-        AMat = At,
-        PIMat = PI,
+        at = At,
         ayx1 = ayx1,
         ayx = ayx,
-        Glist = gammax,
-        Psilist = psi,
+        gammalist = gammax,
+        psilist = psi,
         azero = azero,
         azero.c = azero.c0,
-        interc.ardl = azero.c[1],
+        interc.ardl = azero.c,
         aone = aone,
         aone.c = aone.c0,
-        trend.ardl = aone.c[1],
+        trend.ardl = aone.c,
         vmu = vmu,
         veta = veta
       )

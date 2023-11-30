@@ -9,10 +9,10 @@
 \arguments{
 \item{object}{an object of class "\code{bootCT}"}
 
-\item{...}{not parsed, added for compatibility}
+\item{...}{additional arguments, e.g. \code{out}: subset of output to print. Options (can be multiple) are: "all", "ARDL", "VECM", "cointVECM", "cointARDL". Defaults to "all".}
 }
 \value{
-the function returns a list of summary statistics, already present in the function \code{boot_ardl}, and displays them in an appropriate manner.
+the function returns a list of summary statistics, already present in the function \code{boot_ardl}, and displays them in an appropriate manner. Depending on the "out" argument, ARDL/VECM estimation outputs and/or ARDL/VECM cointegration tests can be displayed.
 }
 \description{
 This function summarizes the ARDL bootstrap test and all the other asymptotic procedures all together.

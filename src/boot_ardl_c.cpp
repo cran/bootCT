@@ -3,7 +3,7 @@
 //' @param r_in input residuals
 //' @param GAMMAX short run parameter matrices column bound, first row in conditional form
 //' @param A long-run parameter matrix, first row in conditional form
-//' @param start_z data matrix of starting point 
+//' @param start_z data matrix of starting point
 //' @param omegat parameter vector of the unlagged differences
 //' @param interc vecm intercept, first element in conditional form
 //' @param trend vecm trend, first element in conditional form
@@ -17,6 +17,7 @@ using namespace arma;
 
 // [[Rcpp::depends(RcppArmadillo)]]
 // [[Rcpp::export]]
+
 Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
                       arma::mat GAMMAX,
                       arma::mat A,
@@ -27,22 +28,22 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
 
   Rcpp::Environment base("package:base");
   Rcpp::Function intersect = base["intersect"];
-  
+
   arma::mat ut = r_in;
-  
+
   //PI matrix
   arma::mat PIM = -A;
-    
+
   int nvdi= r_in.n_cols;
   int nss = r_in.n_rows;
   int MAXl = GAMMAX.n_cols/A.n_cols;
-  
+
   //PSI matrix
   arma::rowvec psi = GAMMAX.row(0);
-  
+
   //ay.x
   arma::rowvec ayx = PIM.row(0);
-  
+
   //error conditional
   arma::vec e_cond = r_in.col(0);
 
@@ -50,14 +51,14 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
 
   arma::mat df_oss (nss, (2 * nvdi + nvdi * (MAXl+1) + 1),fill::zeros);
   df_oss.rows(0,nstart-1) = start_z;
-  
+
   //0_1
   Rcpp::Range tv = Rcpp::seq(0,1);
   //1_2
   Rcpp::Range nind = Rcpp::seq(1,nvdi-1);
   //0_1_2
   Rcpp::Range nlag = Rcpp::seq(0,MAXl);
-  
+
   //2*3*2 = 12
   int dimtot = tv.size()*nlag.size()*nind.size();
 
@@ -69,7 +70,7 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
   for(int i=0; i < nlag.size(); ++i){ // ciclo 0_1_2 lags
     for(int j=1; j <= nind.size(); ++j){ //ciclo 1_2 indip
       for(int k=0; k < tv.size(); ++k){ //ciclo 0_1 tv
-        
+
         //creo vettore indice
         arma::rowvec idx(4,fill::zeros);
         //contiene il pattern es. tv = 0, ind = 1, lag = 0
@@ -88,7 +89,7 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
 
   lev_patterns.shed_rows(t,lev_patterns.n_rows-1);
   arma::mat lev_patternsx=lev_patterns;
-  
+
   diff_patterns.shed_rows(PIM.n_cols*(MAXl+1),diff_patterns.n_rows-1);
   if(MAXl>1){
     lev_patterns.shed_rows(PIM.n_cols*2,lev_patterns.n_rows-1);
@@ -147,7 +148,7 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
           }
           }
    arma::uvec row_sel(1);
- 
+
 //riempimento colonne per modello marginale x di ARDL
    row_sel(0) = w;
 //seleziono variabili diff in lag per z
@@ -165,7 +166,7 @@ Rcpp::List boot_ardl_c(arma::mat r_in, //input residuals
      (trend.subvec(1,(nvdi-1)).t())%idx0.subvec(1,(nvdi-1))+ //errore + trend + intercetta per x
      v_dlag*(GAMMAX.rows(1,GAMMAX.n_rows-1)).t()+ //diff in lag per z
      v_lag*(PIM.rows(1,PIM.n_rows-1)).t(); //lag levels per z lungo periodo
-   
+
    //levels per x
    df_oss.submat(w,1,w,(nvdi-1)) =
      df_oss.submat(w-1,1,w-1,(nvdi-1))+ //riga precedente
