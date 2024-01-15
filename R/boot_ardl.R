@@ -33,14 +33,26 @@
 #'
 #' @examples
 #'\dontrun{
-#' data(ger_macro)
-#' LNDATA = as.data.frame(log(ger_macro[,-1]))
-#' colnames(LNDATA) = c("LNINVEST","LNINCOME","LNCONS")
-#'
-#' boot_res = boot_ardl(data=LNDATA,
-#'                      yvar = "LNINCOME", xvar = c("LNCONS","LNINVEST"),
-#'                      maxlag = 5, nboot = 2000)
-#' summary(boot_res)
+#'#LOAD DATA
+#'data("ger_macro")
+#'# DATA PREPARATION
+#'LNDATA = apply(ger_macro[,-1], 2, log)
+#'col_ln = paste0("LN", colnames(ger_macro)[-1])
+#'LNDATA = as.data.frame(LNDATA)
+#'colnames(LNDATA) = col_ln
+#'LNDATA$DATE = ger_macro$DATE
+#'#ARDL BOOT 
+#'BCT_res = boot_ardl(data = LNDATA,
+#'                    yvar = "LNCONS",
+#'                    xvar = c("LNINCOME","LNINVEST"),
+#'                    maxlag = 5,
+#'                    a.ardl = 0.1,
+#'                    a.vecm = 0.1,
+#'                    nboot = 2000,
+#'                    case = 3,
+#'                    a.boot.H0 = c(0.05),
+#'                    print = T)
+#'summary(boot_res)
 #'}
 #' @export
 boot_ardl =
@@ -110,6 +122,9 @@ boot_ardl =
       warning("Expecting integer fix.ardl values. Rounding to the nearest integer.")
       fix.ardl = round(fix.ardl)
       }
+      if(!is.null(info.ardl)){
+        stop("Conflict of options info.ardl and fix.ardl.")
+      }
     }
 
     if (!is.null(fix.vecm)) {
@@ -117,13 +132,23 @@ boot_ardl =
       warning("Expecting integer fix.vecm value. Rounding to the nearest integer.")
       fix.vecm = round(fix.vecm)
       }
+      if(!is.null(info.vecm)){
+        stop("Conflict of options info.vecm and fix.vecm.")
+      }
     }
 
     if (!is.null(maxlag)) {
-    if (any(maxlag %% 1 != 0)) {
+      if (any(maxlag %% 1 != 0)) {
       warning("Expecting integer maxlag value. Rounding to the nearest integer.")
       maxlag = round(maxlag)
+      }
     }
+    
+    if (!is.null(maxlag)) {
+      if (any(maxlag %% 1 != 0)) {
+      warning("Expecting integer maxlag value. Rounding to the nearest integer.")
+      maxlag = round(maxlag)
+      }
     }
 
     if (nboot %% 1 != 0) {
@@ -237,8 +262,8 @@ boot_ardl =
                           text.ardl2)
     }
 
-    df.ardl.l = list(df.ardl.c = na.omit(cbind(dlag0[, 1], lagdata, final_dlag, dlag0[, -1])),
-                     df.ardl.uc = na.omit(cbind(dlag0[, 1], lagdata, final_dlag)))
+    df.ardl.l = list(df.ardl.c = (cbind(dlag0[, 1], lagdata, final_dlag, dlag0[, -1])),
+                     df.ardl.uc = (cbind(dlag0[, 1], lagdata, final_dlag)))
 
     #EMPTY LISTS FOR OUTPUT
     mod.ardl.l = beta.ardl.l = omega.ardl.l = e.ardl.l = sigmae.ardl.l =

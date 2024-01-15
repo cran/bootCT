@@ -1,8 +1,7 @@
 Package: bootCT
 Type: Package
 Title: Bootstrapping the ARDL Tests for Cointegration
-Version: 2.0.0
-Date: 2023-11-27
+Version: 2.1.0
 Author: Gianmarco Vacca, Stefano Bertelli
 Maintainer: Gianmarco Vacca <gianmarco.vacca@unicatt.it>
 Description: The bootstrap ARDL tests for cointegration is the main functionality of this package. It also acts as a wrapper of the most commond ARDL testing procedures for cointegration: the bound tests of Pesaran, Shin and Smith (PSS; 2001 - <doi:10.1002/jae.616>) and the asymptotic test on the independent variables of Sam, McNown and Goh (SMG: 2019 - <doi:10.1016/j.econmod.2018.11.001>). Bootstrap and bound tests are performed under both the conditional and unconditional ARDL models.
@@ -14,7 +13,9 @@ LinkingTo: Rcpp, RcppArmadillo
 Depends: R (>= 3.5.0)
 RoxygenNote: 7.2.3
 LazyData: true
+Suggests: knitr, rmarkdown, reshape2, ggplot2
+VignetteBuilder: knitr
 NeedsCompilation: yes
-Packaged: 2023-11-30 12:02:49 UTC; gianm
+Packaged: 2024-01-15 11:27:27 UTC; gianm
 Repository: CRAN
-Date/Publication: 2023-11-30 12:20:03 UTC
+Date/Publication: 2024-01-15 12:00:02 UTC

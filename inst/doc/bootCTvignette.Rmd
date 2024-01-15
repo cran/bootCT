@@ -1,0 +1,388 @@
+---
+title: "The bootCT package"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{The bootCT package}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+knitr::opts_chunk$set(echo = TRUE, fig.width = 7, fig.height = 3)
+```
+
+## VAR / VECM models and the conditional ARDL specification
+The starting point of the method which the <tt>bootCT</tt> package is based on is the $K+1$ dimensional VAR$(p)$ model
+
+$$
+\mathbf{A}(L)(\mathbf{z}_t-\boldsymbol{\mu}-\boldsymbol{\eta}t)=\boldsymbol{\varepsilon}_t, \enspace \enspace \enspace \boldsymbol{\varepsilon}_t\sim N_{K+1}(\mathbf{0}, \boldsymbol{\Sigma}),\enspace \enspace \enspace t=1,2,\dots,T$$
+
+$$\mathbf{A}(L)=\left(\mathbf{I}_{K+1}-  \sum_{j=1}^{p}\mathbf{A}_j\mathbf{L}^j\right)
+$$
+Here, $\mathbf{A}_j$ are square $(K+1)$ matrices, $\mathbf{z}_t$ a vector of  $(K+1)$ variables, 
+$\boldsymbol{\mu}$ and $\boldsymbol{\eta}$ are $(K+1)$ vectors representing the drift and the trend respectively, and $det(\mathbf{A}(z))=0$ for $|z| \geq 1$. If the matrix $\mathbf{A}(1)=\mathbf{I}_{K+1}-\sum_{j=1}^{p}\mathbf{A}_{j}$ is singular, the components of $\mathbf{z}_t$ turn out to be integrated and  possibly cointegrated.
+
+The VAR model admits a VECM representation
+
+$$
+\Delta\mathbf{z}_t=\boldsymbol{\alpha}_{0}+\boldsymbol{\alpha}_{1}t-\mathbf{A}(1)\mathbf{z}_{t-1}+\sum_{j=1}^{p-1}\boldsymbol{\Gamma}_{j}\Delta \mathbf{z}_{t-j}+\boldsymbol{\varepsilon}_t
+$$
+where $\boldsymbol{\Gamma}_{j}=-\sum_{i=j+1}^{p}\mathbf{A}_i$.
+The matrix $\mathbf{A}$ (suppressing the bracket term for simplicity's sake) contains the long-run cointegrating relationships among the variables, while the $\boldsymbol{\Gamma}_{j}$'s contain the short-run relationships.
+Defining now $\boldsymbol{\Gamma}(1)=\mathbf{I}_{K+1}-\sum_{i=1}^{p-1}\boldsymbol{\Gamma}_{i}$, the intercept and trend terms in the VECM specification are
+
+$$\boldsymbol{\alpha}_0=\mathbf{A}\boldsymbol{\mu}+(\boldsymbol{\Gamma}(1)-\mathbf{A})\boldsymbol{\eta}, \enspace \enspace \enspace \boldsymbol{\alpha}_1=\mathbf{A}\boldsymbol{\eta}
+$$
+It is important to highlight now the five possible cases in the intercept and trend specifications:
+
+* Case I: no intercept, no trend, for which $\boldsymbol\mu=\boldsymbol\eta=\mathbf 0$
+* Case II: restricted intercept, no trend, for which $\boldsymbol{\alpha}_0=\mathbf{A}\boldsymbol{\mu}$, $\boldsymbol\eta=\mathbf 0$
+* Case III: unrestricted intercept, no trend, for which $\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}$, $\boldsymbol\eta=\mathbf 0$
+* Case IV: unrestricted intercept, restricted trend, for which $\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}$, $\boldsymbol{\alpha}_1=\mathbf{A}\boldsymbol{\eta}$
+* Case V: unrestricted intercept, unrestricted trend, for which $\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}$, $\boldsymbol{\alpha}_1\neq\mathbf{A}\boldsymbol{\eta}$.
+
+We now introduce the key concept of conditioning in the VECM system.
+To study the adjustment to the equilibrium of a single variable $y_t$, given the other $\mathbf{x}_t$ variables, the vectors $\mathbf{z}_t$ and $\boldsymbol{\varepsilon}_t$ are partitioned:
+
+$$
+\mathbf{z}_t=\begin{bmatrix}
+\underset{(1,1)}{y_{t}}  \\ \underset{(K,1)}{\mathbf{x}_{t}}  
+\end{bmatrix}\enspace\boldsymbol{\varepsilon}_t=\begin{bmatrix}
+\underset{(1,1)}{\varepsilon_{yt}} \\  \underset{(K,1)}{\boldsymbol{\varepsilon}_{xt}} \end{bmatrix}
+$$
+The vectors $\boldsymbol{\alpha}_{0}$, $\boldsymbol{\alpha}_{1}$, the matrix $\mathbf{A}$ and the polynomial matrix $\boldsymbol{\Gamma}(L)$ are partitioned conformably to $\mathbf{z}_{t}$
+
+$$\boldsymbol{\alpha}_0=\begin{bmatrix}
+\underset{(1,1)}{\alpha_{0y}}  \\ \underset{(K,1)}{\boldsymbol{\alpha}_{0x}} 
+\end{bmatrix}, \enspace \enspace \enspace \boldsymbol{\alpha}_1=\begin{bmatrix}
+\underset{(1,1)}{\alpha_{1y}}  \\ \underset{(K,1)}{\boldsymbol{\alpha}_{1x} }
+\end{bmatrix}$$
+
+$$\mathbf{A}=\begin{bmatrix}
+\underset{(1,K+1)}{\mathbf{a}^{'}_{(y)}}  \\ \underset{(K,K+1)}{\mathbf{A}_{(x)}} 
+\end{bmatrix}
+=\begin{bmatrix}
+\underset{(1,1)}{a_{yy}} & \underset{(1,K)}{\mathbf{a}^{'}_{yx}}  \\ \underset{(K,1)}{\mathbf{a}_{xy}} & \underset{(K,K)}{\mathbf{A}_{xx} }
+\end{bmatrix}, 
+\enspace \enspace \enspace
+\boldsymbol{\Gamma}(L)=\begin{bmatrix}
+\underset{(1,K+1)}{\boldsymbol{\gamma}^{'}_{y}(L)}  \\ \underset{(K,K+1)}{\boldsymbol{\Gamma}_{(x)}(L)} 
+\end{bmatrix}
+=\begin{bmatrix}
+\underset{(1,1)}{\gamma_{yy}(L)} & \underset{(1,K)}{\boldsymbol{\gamma}^{'}_{yx}(L)}  \\ \underset{(K,1)}{\boldsymbol{\gamma}_{xy}(L)} & \underset{(K,K)}{\boldsymbol{\Gamma}_{xx}(L) }
+\end{bmatrix}
+$$
+while for the error term
+$$
+\boldsymbol{\varepsilon}_t \sim N\Bigg(\mathbf{0}, \begin{bmatrix}
+\underset{(1,1)}{\sigma_{yy}}& \underset{(1,K)}{\boldsymbol{\sigma}_{yx}^{'}}   \\ \underset{(K,1)}{\boldsymbol{\sigma}_{xy}} & \underset{(K,K)}{\boldsymbol{\Sigma}_{xx}} \end{bmatrix}\Bigg)  
+$$
+
+In order to condition $y_t$ on $\mathbf x_t$, we define the conditional variance
+$$\sigma_{y.x}=\sigma_{yy}-\boldsymbol{\sigma}^{'}_{yx}\boldsymbol{\Sigma}^{-1}_{xx}\boldsymbol{\sigma}_{xy}= \sigma_{yy}-\boldsymbol{\omega}^{'}\boldsymbol{\sigma}_{xy}
+$$
+And thus
+$$\varepsilon_{yt}=\boldsymbol{\omega}^{'}\boldsymbol{\varepsilon}_{xt}+\nu_{yt} \sim N(0,\sigma_{y.x})$$
+where $\nu_{yt}$ is independent of $\boldsymbol{\varepsilon}_{xt}$.
+Accordingly, conditioning can be applied to the entire system, obtaining
+
+$$
+\mathbf{a}^{'}_{(y).x}=\mathbf{a}^{'}_{(y)}-\boldsymbol{\omega}^{'}\mathbf{A}_{(x)}, \enspace \enspace \enspace \boldsymbol{\gamma}^{'}_{y.x}(L)=\boldsymbol{\gamma}_{y}'(L)-\boldsymbol{\omega}'\boldsymbol{\Gamma}_{(x)}(L)
+$$
+
+
+Therefore, the long-run relationships of the VECM turn out to be now included in the matrix
+$$
+{\mathbf{A}_c}=\begin{bmatrix}
+\mathbf{a}^{'}_{(y).x} \\ \mathbf{A}_{(x)} 
+\end{bmatrix}=\begin{bmatrix}
+a_{yy}-\boldsymbol{\omega}^{'}\mathbf{a}_{xy} & \mathbf{a}_{yx}^{'}-\boldsymbol{\omega}^{'}\mathbf{A}_{xx} \\ \mathbf{a}_{xy}&\mathbf{A}_{xx} 
+\end{bmatrix}
+$$
+
+To rule out the presence of long-run relationships between $y_{t}$ and $\mathbf{x}_{t}$ in the marginal model, the long-run matrix becomes
+$$
+\widetilde{\mathbf{A}}=\begin{bmatrix}a_{yy} & \mathbf{a}^{'}_{yx}-\boldsymbol{\omega}^{'}\mathbf{A}_{xx} \\ \mathbf{0} & \mathbf{A}_{xx} 
+\end{bmatrix}=\begin{bmatrix}
+a_{yy} & \widetilde{\mathbf{a}}_{y.x}^{'} \\ \mathbf{0}&\mathbf{A}_{xx}\end{bmatrix} 
+$$
+
+Putting everything together, the VECM system remains unaltered in the $\mathbf x_t$ variables
+$$
+\Delta\mathbf{x}_{t} 
+= \boldsymbol{\alpha}_{0x} +\boldsymbol{\alpha}_{1x}t+ \mathbf{A}_{(x)}\mathbf{z}_{t-1}+ \boldsymbol{\Gamma}_{(x)}(L)\Delta\mathbf{z}_t+ \boldsymbol{\varepsilon}_{xt}
+$$
+while the equation in the conditional ARDL specification for $y_t$ is
+
+$$
+\Delta y_{t}=\alpha_{0.y}+\alpha_{1.y}t -a_{yy}EC_{t-1}+ \sum_{j=1}^{p-1}\boldsymbol{\gamma}'_{y.x,j}\Delta\mathbf{z}_{t-j}+\boldsymbol{\omega}'\Delta\mathbf{x}_{t}+\nu_{yt}
+$$
+The error correction term, $EC_{t-1}$, expressing the long-run equilibrium relationship between $y_{t}$ and $\mathbf{x}_{t}$, is given by
+$$
+EC_{t-1}=y_{t-1}-\theta_{0}-\theta_{1}t-\boldsymbol{\theta}'\mathbf{x}_{t-1}
+$$
+with
+$$\theta_{0}=\mu_{y}-\boldsymbol{\theta}'\boldsymbol{\mu}_{x}, \enspace \theta_{1}=\eta_{y}-\boldsymbol{\theta}'\boldsymbol{\eta}_{x}, \enspace\boldsymbol{\theta}'=-\frac{\widetilde{\mathbf{a}'}_{y.x}}{a_{yy}}=-\frac{\mathbf{a}_{yx}'-\boldsymbol{\omega}'\mathbf{A}_{xx}}{a_{yy}}
+$$
+Turning back to the cases specification, the ARDL equation can be specialized on this basis:
+
+* Case I: no intercept, no trend, therefore $\theta_0=\theta_1=\alpha_{0.y}=\alpha_{1.y}=0$
+* Case II: restricted intercept, no trend. Since $\boldsymbol{\alpha}_0=\mathbf{A}\boldsymbol{\mu}$, $\theta_0\neq 0$ and the intercept term appears in $EC_{t-1}$. 
+Therefore, $\alpha_{0.y}=0$. In addition, $\theta_1=\alpha_{1.y}=0$
+* Case III: unrestricted intercept, no trend, Since $\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}$, $\theta_0 = 0$ and
+$\alpha_{0.y}=\alpha_{0y}-\boldsymbol\omega'\boldsymbol\alpha_{0x}\neq0$. In addition, $\theta_1=\alpha_{1.y}=0$
+* Case IV: unrestricted intercept, restricted trend, for which $\alpha_{0.y}=\alpha_{0y}-\boldsymbol\omega'\boldsymbol\alpha_{0x}\neq0$. Since  
+$\boldsymbol{\alpha}_1=\mathbf{A}\boldsymbol{\eta}$, $\theta_1\neq 0$ and the trend term appear in $EC_{t-1}$.
+* Case V: unrestricted intercept, unrestricted trend. Since $\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}$, $\theta_0 = 0$ and
+$\alpha_{0.y}=\alpha_{0y}-\boldsymbol\omega'\boldsymbol\alpha_{0x}\neq0$. In addition, $\boldsymbol{\alpha}_1\neq\mathbf{A}\boldsymbol{\eta}$, $\theta_1 = 0$ and
+$\alpha_{1.y}=\alpha_{1y}-\boldsymbol\omega'\boldsymbol\alpha_{1x}\neq0$
+
+## Generating a multivariate time series: the <tt>sim\_vecm\_ardl</tt> function
+
+As usual, we load the package
+```{r setup, warning=FALSE}
+library(bootCT)
+```
+```{r message=FALSE, warning=FALSE, include=FALSE}
+library(reshape2)
+library(ggplot2)
+library(dplyr)
+```
+This first function allows to generate a multivariate time series that follows a VECM/ARDL specification, and a particular <tt>case</tt>, as detailed above. These are the parameters:
+
+* The error covariance matrix $\boldsymbol\Sigma$
+```{r echo=TRUE}
+sigma.in = matrix(c(1.69, 0.39, 0.52,
+                    0.39, 1.44, -0.3,
+                    0.52, -0.3, 1.00),3,3)
+```
+* The short-run parameters, $\boldsymbol\Gamma_1$, $\boldsymbol\Gamma_2$
+
+```{r echo=TRUE}
+gamma1 = matrix(c(0.60, 0.00, 0.20,
+                  0.10, -0.3, 0.00,
+                  0.00, -0.3, 0.20),3,3,T)
+gamma2 = gamma1 * 0.3
+gamma.in = list(gamma1,gamma2)
+```
+* The long-run parameters, $a_{yy}$, $\mathbf a_{yx}$, $\mathbf A_{xx}$ that will eventually form the matrix $\widetilde{\mathbf A}$
+
+```{r echo=TRUE}
+ayy.in = 0.6
+ayx.uc.in = c(0.4, 0.4)
+axx.in = matrix(c(0.30, 0.50,
+                  -0.4, 0.30),2,2,T)
+```
+* The intercept and trend terms ($\boldsymbol\mu$, $\boldsymbol\eta$, $\boldsymbol\alpha_0$ and $\boldsymbol\alpha_1$), which depend on the chosen case. For instance, in Case II:
+
+```{r echo=TRUE}
+case = 2
+mu.in = c(2,2,2)
+eta.in = c(0,0,0)
+azero.in = c(0,0,0)
+aone.in = c(0,0,0)
+```
+Calling the function to generate $T=200$ observations:
+
+```{r echo=TRUE}
+data.vecm.ardl_2 =
+  sim_vecm_ardl(nobs=200,
+                case = 2,
+                sigma.in = sigma.in,
+                gamma.in = gamma.in,
+                axx.in = axx.in,
+                ayx.uc.in = ayx.uc.in,
+                ayy.in = ayy.in,
+                mu.in = mu.in,
+                eta.in = eta.in,
+                azero.in = azero.in,
+                aone.in = aone.in,
+                burn.in = 100,
+                seed.in = 999)
+```
+In the function output, there are several elements available. Some represent the function arguments themselves, other are calculated as a byproduct (e.g., $\alpha_{0.y}$, $\alpha_{1.y}$, $\theta_{0}$, $\theta_{1}$). The main points of interests are naturally the data and its first difference
+
+```{r echo=TRUE}
+head(data.vecm.ardl_2$data)
+head(data.vecm.ardl_2$diffdata)
+```
+Notice that the index of the data starts from <tt>burn.in + length(gamma.in) + 1 </tt>.
+
+The following code plots the data and the first difference:
+
+```{r echo=TRUE}
+df = data.vecm.ardl_2$data
+meltdf <- melt(df,id="time")
+ggplot(meltdf,
+       aes(x = time, y = value, colour = variable, group = variable)) +
+       geom_line() + ggtitle("CASE II - Level") + theme_bw()
+df = data.vecm.ardl_2$diffdata
+meltdf <- melt(df,id="time")
+ggplot(meltdf,
+       aes(x = time, y = value, colour = variable, group = variable)) +
+       geom_line() + ggtitle("CASE II - Diff") + theme_bw()
+```
+To make the case in accordance with the intercept/trend specification for Case III/IV/V, respectively:
+
+```{r echo=TRUE}
+# case III
+case = 3
+mu.in = c(0,0,0)
+eta.in = c(0,0,0)
+azero.in = c(2,2,2)
+aone.in = c(0,0,0)
+
+# case IV
+case = 4
+mu.in = c(0,0,0)
+eta.in = c(0.6,0.6,0.6)
+azero.in = c(2,2,2)
+aone.in = c(0,0,0)
+
+# case V
+case = 5
+mu.in = c(0,0,0)
+eta.in = c(0,0,0)
+azero.in = c(2,2,2)
+aone.in = c(0.6,0.6,0.6)
+```
+
+## Bootstrapping the ARDL test for cointegration
+The usual test based on the conditional ARDL model examines the following null hypotheses:
+
+$$
+H_0^{F_{ov}}: a_{yy}=0\enspace\cap \enspace\widetilde{\mathbf a}_{y.x}=\mathbf 0
+$$
+$$
+H_0^{F_{ind}}: \widetilde{\mathbf a}_{y.x}=\mathbf 0\qquad \text{(Degeneracy of first type)}
+$$
+
+$$
+H_0^{t}: a_{yy}=0 \qquad \text{(Degeneracy of second type)}
+$$
+Note that a form of spurious cointegration can occur, since $\widetilde{\mathbf a}_{y.x} = \mathbf a_{y.x} - \boldsymbol\omega'\mathbf A_{xx}$. 
+
+If $H_0^{F_{ind}}$ is rejected, it might be that $\mathbf a_{y.x} = \mathbf 0$, while $\boldsymbol\omega'\mathbf A_{xx} \neq \mathbf 0$. In that case, no cointegration is really in place.
+
+For this reason, the $F_{ind}$ test must be performed also in the unconditional ARDL model (UC), that is the one omitting instantaneous differences of the independent variables from the equation ($\Delta\mathbf x_t$), along with their coefficient $\boldsymbol\omega'$. Its null hypothesis is
+
+$$
+H_{0,UC}^{F_{ind}}: {\mathbf a}_{yx}=\mathbf 0
+$$
+On the model
+
+$$
+\Delta y_{t}=\alpha_{0.y}+\alpha_{1.y}t -a_{yy}EC_{t-1}+ \sum_{j=1}^{p-1}\boldsymbol{\gamma}'_{y.x,j}\Delta\mathbf{z}_{t-j}+\nu_{yt}
+$$
+in which $\boldsymbol{\theta}'=-\frac{{\mathbf{a}'}_{yx}}{a_{yy}}$.
+
+The usual testing framework in Pesaran (2001) employs the ARDL bound test on the conditional model for $F_{ov}$ and $t$, while Goh et al. (2017) derived the bound test for $F_{ind}$. However:
+
+* The $t$ and $F_{ind}$ tests are available only for Case I-III-V
+* Bound tests may lead to inconclusive results
+
+For this reason, Bertelli et al. (2022) derived a comprehensive bootstrap framework to analyze ARDL-based cointegration.
+
+In order to perform this bootrap version, the usual "bootstrap ingredients" are necessary
+
+* The test statistics coming from the original data: $F_{ov}$, $t$, $F_{ind}$ and $F_{ind,UC}$.
+* A sampling scheme on the original data.
+* The simulated bootstrap distribution of each statistic under its respective null hypothesis, of which the critical quantiles $c^*_{\alpha,T}$ are calculated. 
+
+This bootstrap procedure does the following:
+
+* In calculating the test statistics, the most appropriate model in the estimation phase for both the ARDL and VECM models has to be chosen. This can either be imposed by the user or automatically detected via information criteria
+
+* In deriving the bootstrap distribution of the statistics under each null, the marginal VECM model remains unaltered, while the ARDL model is re-estimated imposing the particular null hypothesis under examination (i.e., discarding the variables related to $a_{yy}$, $\widetilde{\mathbf a}_{y.x}$, or both). Thus, the residuals of the ARDL and VECM models are calculated. Naturally, for the $F_{ind,UC}$ model, the restriction applies to ${\mathbf a}_{yx}$.
+
+* In each bootstrap iteration, a random sample from the residuals is extracted (of the same length of the original data), and synthetic data is generated using the estimates obtained under each null.
+Finally the bootstrap version $F^{(b)}_{ov}$, $t^{(b)}$ and $F^{(b)}_{ind}$ is calculated and stored, for $b = 1,\dots,B$. $F^{(b)}_{ind,UC}$ is also calculated if appropriate.
+
+* Bootstrap critical quantiles are calculated, and decision on each test is based on the comparison between said critical value and the statistic in the original data. Notably, the $F_{ind,UC}$ and its bootstrap distribution under the null are calculated only when it is mandatory to detect spurious cointegration.
+
+## The <tt>boot\_ardl</tt> function
+We use the German macroeconomic dataset of Lutkepohl (2007). We start by loading the data and visualizing it - also in first difference
+
+```{r echo=TRUE}
+data("ger_macro")
+
+# Data preparation (log-transform)
+LNDATA = apply(ger_macro[,-1], 2, log)
+col_ln = paste0("LN", colnames(ger_macro)[-1])
+LNDATA = as.data.frame(LNDATA)
+colnames(LNDATA) = col_ln
+LNDATA = LNDATA %>% select(LNCONS, LNINCOME, LNINVEST)
+LNDATA$DATE = ger_macro$DATE
+
+# First difference
+lagdf1 = lag_mts(as.matrix(LNDATA[,-4]), k = c(1,1,1))
+DIFF.LNDATA = na.omit(LNDATA[,-4] - lagdf1)
+colnames(DIFF.LNDATA) = paste0("D_", colnames(LNDATA)[-4])
+DIFF.LNDATA$DATE = ger_macro$DATE[-1]
+
+# Graphs
+dfmelt = melt(LNDATA, id = "DATE")
+dfmelt = dfmelt%>%arrange(variable,DATE)
+diff.dfmelt = melt(DIFF.LNDATA, id = "DATE")
+diff.dfmelt = diff.dfmelt%>%arrange(variable,DATE)
+
+ggplot(dfmelt,
+       aes(x = DATE, y = value, colour = variable, group = variable)) +
+  geom_line() + ggtitle("Level Variables (log-scale)") + theme_bw()
+
+ggplot(diff.dfmelt,
+       aes(x = DATE, y = value, colour = variable, group = variable)) +
+  geom_line() + ggtitle("Diff. Variables (log-scale)") + theme_bw()
+```
+Calling the function using <tt>CONS</tt> as the dependent variable:
+
+```{r results='hide'}
+BCT_res_CONS = boot_ardl(data = LNDATA,
+                         yvar = "LNCONS",
+                         xvar = c("LNINCOME","LNINVEST"),
+                         case = 3,
+                         fix.ardl = NULL,
+                         info.ardl = "AIC",
+                         fix.vecm = NULL,
+                         info.vecm = "AIC",
+                         maxlag = 5,
+                         a.ardl = 0.1,
+                         a.vecm = 0.1,
+                         nboot = 2000,
+                         a.boot.H0 = c(0.01,0.05,0.1),
+                         print = F)
+```
+Notably, the parameters <tt>fix.vecm</tt> and <tt>fix.ardl</tt> are blank, meaning that the estimation phase is dealt with via an automatic procedure that selects the best lag order for the short-run parameters employing common information criteria such as the AIC, BIC, SC, FPE, etc.
+In this case, the parameters identifying the criteria, </tt>info.vecm</tt> and <tt>info.ardl</tt> are also null, which in turn triggers the AIC as default value.
+The parameter <tt>maxlag</tt> sets the maximum possible value in the lag search.
+Secondly, the parameters <tt>a.vecm</tt> and <tt>a.ardl</tt> set the significance threshold for each of the  single parameters in the short-run part of the model equation for the VECM and ARDL models, respectively. Coefficients for which the $p$-value is greater than this latter threshold are discarded.
+The argument <tt>a.boot.H0</tt> sets the significance levels for which critical values of the bootstrap distribution under the null of $F_{ov}$, $t$, $F_{ind}$ and $F_{ind,UC}$ (if appropriate) are calculated, using <tt>nboot</tt> residual bootstrap replicates.
+
+A summary method can be called to visualize subsets of the output:
+
+* The conditional ARDL model estimates
+```{r echo=TRUE}
+summary(BCT_res_CONS, out="ARDL")
+```
+The lagged levels of <tt>LNCONS</tt> and <tt>LNINCOME</tt> are significant, hinting a possible cointegrating relationship. The estimates of the instantaneous differences of <tt>LNINCOME</tt> and <tt>LNINVEST</tt> (i.e., the parameters in $\boldsymbol\omega'$) are also significant. Only the one-lagged difference of <tt>LNCONS</tt> is significant.
+
+* The VECM model estimates (displayed also for <tt>LNCONS</tt> for the sake of completeness)
+```{r echo=TRUE}
+summary(BCT_res_CONS, out="VECM")
+```
+* The Johansen test for cointegration on the independent variables 
+
+```{r echo=TRUE}
+summary(BCT_res_CONS, out="cointVECM")
+```
+We accept the null $r=0$ for both the trace and eigenvalue tests, therefore the independent variables are not cointegrated.
+
+* The ARDL bootstrap and bound tests
+```{r echo=TRUE}
+summary(BCT_res_CONS, out="cointARDL")
+```
+This is the main output of the function. Since <tt>case=3</tt> all the bound tests can be performed. In this example, not only the statistics exceed the I(1) threshold on the bound tests, but they also exceed the bootstrap critical values reported at the bottom of each test result. Cointegration is thus confirmed between <tt>LNCONS</tt> and the other variables. No spurious (faux) cointegration is detected.

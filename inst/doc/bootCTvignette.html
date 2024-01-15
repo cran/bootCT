@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>The bootCT package</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">The bootCT package</h1>
+
+
+
+<div id="var-vecm-models-and-the-conditional-ardl-specification" class="section level2">
+<h2>VAR / VECM models and the conditional ARDL specification</h2>
+<p>The starting point of the method which the <tt>bootCT</tt> package is
+based on is the <span class="math inline">\(K+1\)</span> dimensional
+VAR<span class="math inline">\((p)\)</span> model</p>
+<p><span class="math display">\[
+\mathbf{A}(L)(\mathbf{z}_t-\boldsymbol{\mu}-\boldsymbol{\eta}t)=\boldsymbol{\varepsilon}_t,
+\enspace \enspace \enspace \boldsymbol{\varepsilon}_t\sim
+N_{K+1}(\mathbf{0}, \boldsymbol{\Sigma}),\enspace \enspace \enspace
+t=1,2,\dots,T\]</span></p>
+<p><span class="math display">\[\mathbf{A}(L)=\left(\mathbf{I}_{K+1}-  \sum_{j=1}^{p}\mathbf{A}_j\mathbf{L}^j\right)
+\]</span> Here, <span class="math inline">\(\mathbf{A}_j\)</span> are
+square <span class="math inline">\((K+1)\)</span> matrices, <span class="math inline">\(\mathbf{z}_t\)</span> a vector of <span class="math inline">\((K+1)\)</span> variables, <span class="math inline">\(\boldsymbol{\mu}\)</span> and <span class="math inline">\(\boldsymbol{\eta}\)</span> are <span class="math inline">\((K+1)\)</span> vectors representing the drift and
+the trend respectively, and <span class="math inline">\(det(\mathbf{A}(z))=0\)</span> for <span class="math inline">\(|z| \geq 1\)</span>. If the matrix <span class="math inline">\(\mathbf{A}(1)=\mathbf{I}_{K+1}-\sum_{j=1}^{p}\mathbf{A}_{j}\)</span>
+is singular, the components of <span class="math inline">\(\mathbf{z}_t\)</span> turn out to be integrated
+and possibly cointegrated.</p>
+<p>The VAR model admits a VECM representation</p>
+<p><span class="math display">\[
+\Delta\mathbf{z}_t=\boldsymbol{\alpha}_{0}+\boldsymbol{\alpha}_{1}t-\mathbf{A}(1)\mathbf{z}_{t-1}+\sum_{j=1}^{p-1}\boldsymbol{\Gamma}_{j}\Delta
+\mathbf{z}_{t-j}+\boldsymbol{\varepsilon}_t
+\]</span> where <span class="math inline">\(\boldsymbol{\Gamma}_{j}=-\sum_{i=j+1}^{p}\mathbf{A}_i\)</span>.
+The matrix <span class="math inline">\(\mathbf{A}\)</span> (suppressing
+the bracket term for simplicity’s sake) contains the long-run
+cointegrating relationships among the variables, while the <span class="math inline">\(\boldsymbol{\Gamma}_{j}\)</span>’s contain the
+short-run relationships. Defining now <span class="math inline">\(\boldsymbol{\Gamma}(1)=\mathbf{I}_{K+1}-\sum_{i=1}^{p-1}\boldsymbol{\Gamma}_{i}\)</span>,
+the intercept and trend terms in the VECM specification are</p>
+<p><span class="math display">\[\boldsymbol{\alpha}_0=\mathbf{A}\boldsymbol{\mu}+(\boldsymbol{\Gamma}(1)-\mathbf{A})\boldsymbol{\eta},
+\enspace \enspace \enspace
+\boldsymbol{\alpha}_1=\mathbf{A}\boldsymbol{\eta}
+\]</span> It is important to highlight now the five possible cases in
+the intercept and trend specifications:</p>
+<ul>
+<li>Case I: no intercept, no trend, for which <span class="math inline">\(\boldsymbol\mu=\boldsymbol\eta=\mathbf
+0\)</span></li>
+<li>Case II: restricted intercept, no trend, for which <span class="math inline">\(\boldsymbol{\alpha}_0=\mathbf{A}\boldsymbol{\mu}\)</span>,
+<span class="math inline">\(\boldsymbol\eta=\mathbf 0\)</span></li>
+<li>Case III: unrestricted intercept, no trend, for which <span class="math inline">\(\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}\)</span>,
+<span class="math inline">\(\boldsymbol\eta=\mathbf 0\)</span></li>
+<li>Case IV: unrestricted intercept, restricted trend, for which <span class="math inline">\(\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}\)</span>,
+<span class="math inline">\(\boldsymbol{\alpha}_1=\mathbf{A}\boldsymbol{\eta}\)</span></li>
+<li>Case V: unrestricted intercept, unrestricted trend, for which <span class="math inline">\(\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}\)</span>,
+<span class="math inline">\(\boldsymbol{\alpha}_1\neq\mathbf{A}\boldsymbol{\eta}\)</span>.</li>
+</ul>
+<p>We now introduce the key concept of conditioning in the VECM system.
+To study the adjustment to the equilibrium of a single variable <span class="math inline">\(y_t\)</span>, given the other <span class="math inline">\(\mathbf{x}_t\)</span> variables, the vectors <span class="math inline">\(\mathbf{z}_t\)</span> and <span class="math inline">\(\boldsymbol{\varepsilon}_t\)</span> are
+partitioned:</p>
+<p><span class="math display">\[
+\mathbf{z}_t=\begin{bmatrix}
+\underset{(1,1)}{y_{t}}  \\ \underset{(K,1)}{\mathbf{x}_{t}}  
+\end{bmatrix}\enspace\boldsymbol{\varepsilon}_t=\begin{bmatrix}
+\underset{(1,1)}{\varepsilon_{yt}}
+\\  \underset{(K,1)}{\boldsymbol{\varepsilon}_{xt}} \end{bmatrix}
+\]</span> The vectors <span class="math inline">\(\boldsymbol{\alpha}_{0}\)</span>, <span class="math inline">\(\boldsymbol{\alpha}_{1}\)</span>, the matrix <span class="math inline">\(\mathbf{A}\)</span> and the polynomial matrix
+<span class="math inline">\(\boldsymbol{\Gamma}(L)\)</span> are
+partitioned conformably to <span class="math inline">\(\mathbf{z}_{t}\)</span></p>
+<p><span class="math display">\[\boldsymbol{\alpha}_0=\begin{bmatrix}
+\underset{(1,1)}{\alpha_{0y}}  \\
+\underset{(K,1)}{\boldsymbol{\alpha}_{0x}}
+\end{bmatrix}, \enspace \enspace \enspace
+\boldsymbol{\alpha}_1=\begin{bmatrix}
+\underset{(1,1)}{\alpha_{1y}}  \\
+\underset{(K,1)}{\boldsymbol{\alpha}_{1x} }
+\end{bmatrix}\]</span></p>
+<p><span class="math display">\[\mathbf{A}=\begin{bmatrix}
+\underset{(1,K+1)}{\mathbf{a}^{&#39;}_{(y)}}  \\
+\underset{(K,K+1)}{\mathbf{A}_{(x)}}
+\end{bmatrix}
+=\begin{bmatrix}
+\underset{(1,1)}{a_{yy}} &amp;
+\underset{(1,K)}{\mathbf{a}^{&#39;}_{yx}}  \\
+\underset{(K,1)}{\mathbf{a}_{xy}} &amp; \underset{(K,K)}{\mathbf{A}_{xx}
+}
+\end{bmatrix},
+\enspace \enspace \enspace
+\boldsymbol{\Gamma}(L)=\begin{bmatrix}
+\underset{(1,K+1)}{\boldsymbol{\gamma}^{&#39;}_{y}(L)}  \\
+\underset{(K,K+1)}{\boldsymbol{\Gamma}_{(x)}(L)}
+\end{bmatrix}
+=\begin{bmatrix}
+\underset{(1,1)}{\gamma_{yy}(L)} &amp;
+\underset{(1,K)}{\boldsymbol{\gamma}^{&#39;}_{yx}(L)}  \\
+\underset{(K,1)}{\boldsymbol{\gamma}_{xy}(L)} &amp;
+\underset{(K,K)}{\boldsymbol{\Gamma}_{xx}(L) }
+\end{bmatrix}
+\]</span> while for the error term <span class="math display">\[
+\boldsymbol{\varepsilon}_t \sim N\Bigg(\mathbf{0}, \begin{bmatrix}
+\underset{(1,1)}{\sigma_{yy}}&amp;
+\underset{(1,K)}{\boldsymbol{\sigma}_{yx}^{&#39;}}   \\
+\underset{(K,1)}{\boldsymbol{\sigma}_{xy}} &amp;
+\underset{(K,K)}{\boldsymbol{\Sigma}_{xx}} \end{bmatrix}\Bigg)  
+\]</span></p>
+<p>In order to condition <span class="math inline">\(y_t\)</span> on
+<span class="math inline">\(\mathbf x_t\)</span>, we define the
+conditional variance <span class="math display">\[\sigma_{y.x}=\sigma_{yy}-\boldsymbol{\sigma}^{&#39;}_{yx}\boldsymbol{\Sigma}^{-1}_{xx}\boldsymbol{\sigma}_{xy}=
+\sigma_{yy}-\boldsymbol{\omega}^{&#39;}\boldsymbol{\sigma}_{xy}
+\]</span> And thus <span class="math display">\[\varepsilon_{yt}=\boldsymbol{\omega}^{&#39;}\boldsymbol{\varepsilon}_{xt}+\nu_{yt}
+\sim N(0,\sigma_{y.x})\]</span> where <span class="math inline">\(\nu_{yt}\)</span> is independent of <span class="math inline">\(\boldsymbol{\varepsilon}_{xt}\)</span>.
+Accordingly, conditioning can be applied to the entire system,
+obtaining</p>
+<p><span class="math display">\[
+\mathbf{a}^{&#39;}_{(y).x}=\mathbf{a}^{&#39;}_{(y)}-\boldsymbol{\omega}^{&#39;}\mathbf{A}_{(x)},
+\enspace \enspace \enspace
+\boldsymbol{\gamma}^{&#39;}_{y.x}(L)=\boldsymbol{\gamma}_{y}&#39;(L)-\boldsymbol{\omega}&#39;\boldsymbol{\Gamma}_{(x)}(L)
+\]</span></p>
+<p>Therefore, the long-run relationships of the VECM turn out to be now
+included in the matrix <span class="math display">\[
+{\mathbf{A}_c}=\begin{bmatrix}
+\mathbf{a}^{&#39;}_{(y).x} \\ \mathbf{A}_{(x)}
+\end{bmatrix}=\begin{bmatrix}
+a_{yy}-\boldsymbol{\omega}^{&#39;}\mathbf{a}_{xy} &amp;
+\mathbf{a}_{yx}^{&#39;}-\boldsymbol{\omega}^{&#39;}\mathbf{A}_{xx} \\
+\mathbf{a}_{xy}&amp;\mathbf{A}_{xx}
+\end{bmatrix}
+\]</span></p>
+<p>To rule out the presence of long-run relationships between <span class="math inline">\(y_{t}\)</span> and <span class="math inline">\(\mathbf{x}_{t}\)</span> in the marginal model, the
+long-run matrix becomes <span class="math display">\[
+\widetilde{\mathbf{A}}=\begin{bmatrix}a_{yy} &amp;
+\mathbf{a}^{&#39;}_{yx}-\boldsymbol{\omega}^{&#39;}\mathbf{A}_{xx} \\
+\mathbf{0} &amp; \mathbf{A}_{xx}
+\end{bmatrix}=\begin{bmatrix}
+a_{yy} &amp; \widetilde{\mathbf{a}}_{y.x}^{&#39;} \\
+\mathbf{0}&amp;\mathbf{A}_{xx}\end{bmatrix}
+\]</span></p>
+<p>Putting everything together, the VECM system remains unaltered in the
+<span class="math inline">\(\mathbf x_t\)</span> variables <span class="math display">\[
+\Delta\mathbf{x}_{t}
+= \boldsymbol{\alpha}_{0x} +\boldsymbol{\alpha}_{1x}t+
+\mathbf{A}_{(x)}\mathbf{z}_{t-1}+
+\boldsymbol{\Gamma}_{(x)}(L)\Delta\mathbf{z}_t+
+\boldsymbol{\varepsilon}_{xt}
+\]</span> while the equation in the conditional ARDL specification for
+<span class="math inline">\(y_t\)</span> is</p>
+<p><span class="math display">\[
+\Delta y_{t}=\alpha_{0.y}+\alpha_{1.y}t -a_{yy}EC_{t-1}+
+\sum_{j=1}^{p-1}\boldsymbol{\gamma}&#39;_{y.x,j}\Delta\mathbf{z}_{t-j}+\boldsymbol{\omega}&#39;\Delta\mathbf{x}_{t}+\nu_{yt}
+\]</span> The error correction term, <span class="math inline">\(EC_{t-1}\)</span>, expressing the long-run
+equilibrium relationship between <span class="math inline">\(y_{t}\)</span> and <span class="math inline">\(\mathbf{x}_{t}\)</span>, is given by <span class="math display">\[
+EC_{t-1}=y_{t-1}-\theta_{0}-\theta_{1}t-\boldsymbol{\theta}&#39;\mathbf{x}_{t-1}
+\]</span> with <span class="math display">\[\theta_{0}=\mu_{y}-\boldsymbol{\theta}&#39;\boldsymbol{\mu}_{x},
+\enspace
+\theta_{1}=\eta_{y}-\boldsymbol{\theta}&#39;\boldsymbol{\eta}_{x},
+\enspace\boldsymbol{\theta}&#39;=-\frac{\widetilde{\mathbf{a}&#39;}_{y.x}}{a_{yy}}=-\frac{\mathbf{a}_{yx}&#39;-\boldsymbol{\omega}&#39;\mathbf{A}_{xx}}{a_{yy}}
+\]</span> Turning back to the cases specification, the ARDL equation can
+be specialized on this basis:</p>
+<ul>
+<li>Case I: no intercept, no trend, therefore <span class="math inline">\(\theta_0=\theta_1=\alpha_{0.y}=\alpha_{1.y}=0\)</span></li>
+<li>Case II: restricted intercept, no trend. Since <span class="math inline">\(\boldsymbol{\alpha}_0=\mathbf{A}\boldsymbol{\mu}\)</span>,
+<span class="math inline">\(\theta_0\neq 0\)</span> and the intercept
+term appears in <span class="math inline">\(EC_{t-1}\)</span>.
+Therefore, <span class="math inline">\(\alpha_{0.y}=0\)</span>. In
+addition, <span class="math inline">\(\theta_1=\alpha_{1.y}=0\)</span></li>
+<li>Case III: unrestricted intercept, no trend, Since <span class="math inline">\(\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}\)</span>,
+<span class="math inline">\(\theta_0 = 0\)</span> and <span class="math inline">\(\alpha_{0.y}=\alpha_{0y}-\boldsymbol\omega&#39;\boldsymbol\alpha_{0x}\neq0\)</span>.
+In addition, <span class="math inline">\(\theta_1=\alpha_{1.y}=0\)</span></li>
+<li>Case IV: unrestricted intercept, restricted trend, for which <span class="math inline">\(\alpha_{0.y}=\alpha_{0y}-\boldsymbol\omega&#39;\boldsymbol\alpha_{0x}\neq0\)</span>.
+Since<br />
+<span class="math inline">\(\boldsymbol{\alpha}_1=\mathbf{A}\boldsymbol{\eta}\)</span>,
+<span class="math inline">\(\theta_1\neq 0\)</span> and the trend term
+appear in <span class="math inline">\(EC_{t-1}\)</span>.</li>
+<li>Case V: unrestricted intercept, unrestricted trend. Since <span class="math inline">\(\boldsymbol{\alpha}_0\neq\mathbf{A}\boldsymbol{\mu}\)</span>,
+<span class="math inline">\(\theta_0 = 0\)</span> and <span class="math inline">\(\alpha_{0.y}=\alpha_{0y}-\boldsymbol\omega&#39;\boldsymbol\alpha_{0x}\neq0\)</span>.
+In addition, <span class="math inline">\(\boldsymbol{\alpha}_1\neq\mathbf{A}\boldsymbol{\eta}\)</span>,
+<span class="math inline">\(\theta_1 = 0\)</span> and <span class="math inline">\(\alpha_{1.y}=\alpha_{1y}-\boldsymbol\omega&#39;\boldsymbol\alpha_{1x}\neq0\)</span></li>
+</ul>
+</div>
+<div id="generating-a-multivariate-time-series-the-sim_vecm_ardl-function" class="section level2">
+<h2>Generating a multivariate time series: the <tt>sim_vecm_ardl</tt>
+function</h2>
+<p>As usual, we load the package</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">library</span>(bootCT)</span></code></pre></div>
+<p>This first function allows to generate a multivariate time series
+that follows a VECM/ARDL specification, and a particular <tt>case</tt>,
+as detailed above. These are the parameters:</p>
+<ul>
+<li>The error covariance matrix <span class="math inline">\(\boldsymbol\Sigma\)</span></li>
+</ul>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>sigma.in <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">1.69</span>, <span class="fl">0.39</span>, <span class="fl">0.52</span>,</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>                    <span class="fl">0.39</span>, <span class="fl">1.44</span>, <span class="sc">-</span><span class="fl">0.3</span>,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>                    <span class="fl">0.52</span>, <span class="sc">-</span><span class="fl">0.3</span>, <span class="fl">1.00</span>),<span class="dv">3</span>,<span class="dv">3</span>)</span></code></pre></div>
+<ul>
+<li>The short-run parameters, <span class="math inline">\(\boldsymbol\Gamma_1\)</span>, <span class="math inline">\(\boldsymbol\Gamma_2\)</span></li>
+</ul>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>gamma1 <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.60</span>, <span class="fl">0.00</span>, <span class="fl">0.20</span>,</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>                  <span class="fl">0.10</span>, <span class="sc">-</span><span class="fl">0.3</span>, <span class="fl">0.00</span>,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>                  <span class="fl">0.00</span>, <span class="sc">-</span><span class="fl">0.3</span>, <span class="fl">0.20</span>),<span class="dv">3</span>,<span class="dv">3</span>,T)</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>gamma2 <span class="ot">=</span> gamma1 <span class="sc">*</span> <span class="fl">0.3</span></span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>gamma.in <span class="ot">=</span> <span class="fu">list</span>(gamma1,gamma2)</span></code></pre></div>
+<ul>
+<li>The long-run parameters, <span class="math inline">\(a_{yy}\)</span>, <span class="math inline">\(\mathbf a_{yx}\)</span>, <span class="math inline">\(\mathbf A_{xx}\)</span> that will eventually form
+the matrix <span class="math inline">\(\widetilde{\mathbf
+A}\)</span></li>
+</ul>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>ayy.in <span class="ot">=</span> <span class="fl">0.6</span></span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>ayx.uc.in <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.4</span>, <span class="fl">0.4</span>)</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>axx.in <span class="ot">=</span> <span class="fu">matrix</span>(<span class="fu">c</span>(<span class="fl">0.30</span>, <span class="fl">0.50</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>                  <span class="sc">-</span><span class="fl">0.4</span>, <span class="fl">0.30</span>),<span class="dv">2</span>,<span class="dv">2</span>,T)</span></code></pre></div>
+<ul>
+<li>The intercept and trend terms (<span class="math inline">\(\boldsymbol\mu\)</span>, <span class="math inline">\(\boldsymbol\eta\)</span>, <span class="math inline">\(\boldsymbol\alpha_0\)</span> and <span class="math inline">\(\boldsymbol\alpha_1\)</span>), which depend on the
+chosen case. For instance, in Case II:</li>
+</ul>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>case <span class="ot">=</span> <span class="dv">2</span></span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>mu.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>)</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>eta.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>azero.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>aone.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span></code></pre></div>
+<p>Calling the function to generate <span class="math inline">\(T=200\)</span> observations:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>data.vecm.ardl_2 <span class="ot">=</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a>  <span class="fu">sim_vecm_ardl</span>(<span class="at">nobs=</span><span class="dv">200</span>,</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a>                <span class="at">case =</span> <span class="dv">2</span>,</span>
+<span id="cb6-4"><a href="#cb6-4" tabindex="-1"></a>                <span class="at">sigma.in =</span> sigma.in,</span>
+<span id="cb6-5"><a href="#cb6-5" tabindex="-1"></a>                <span class="at">gamma.in =</span> gamma.in,</span>
+<span id="cb6-6"><a href="#cb6-6" tabindex="-1"></a>                <span class="at">axx.in =</span> axx.in,</span>
+<span id="cb6-7"><a href="#cb6-7" tabindex="-1"></a>                <span class="at">ayx.uc.in =</span> ayx.uc.in,</span>
+<span id="cb6-8"><a href="#cb6-8" tabindex="-1"></a>                <span class="at">ayy.in =</span> ayy.in,</span>
+<span id="cb6-9"><a href="#cb6-9" tabindex="-1"></a>                <span class="at">mu.in =</span> mu.in,</span>
+<span id="cb6-10"><a href="#cb6-10" tabindex="-1"></a>                <span class="at">eta.in =</span> eta.in,</span>
+<span id="cb6-11"><a href="#cb6-11" tabindex="-1"></a>                <span class="at">azero.in =</span> azero.in,</span>
+<span id="cb6-12"><a href="#cb6-12" tabindex="-1"></a>                <span class="at">aone.in =</span> aone.in,</span>
+<span id="cb6-13"><a href="#cb6-13" tabindex="-1"></a>                <span class="at">burn.in =</span> <span class="dv">100</span>,</span>
+<span id="cb6-14"><a href="#cb6-14" tabindex="-1"></a>                <span class="at">seed.in =</span> <span class="dv">999</span>)</span></code></pre></div>
+<p>In the function output, there are several elements available. Some
+represent the function arguments themselves, other are calculated as a
+byproduct (e.g., <span class="math inline">\(\alpha_{0.y}\)</span>,
+<span class="math inline">\(\alpha_{1.y}\)</span>, <span class="math inline">\(\theta_{0}\)</span>, <span class="math inline">\(\theta_{1}\)</span>). The main points of interests
+are naturally the data and its first difference</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a><span class="fu">head</span>(data.vecm.ardl_2<span class="sc">$</span>data)</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="co">#&gt;         dep_1_0     ind_1_0   ind_2_0 time</span></span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a><span class="co">#&gt; 104 -3.53399308  2.51204516 5.3842215    1</span></span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; 105 -0.05750437  1.23912249 7.8679695    2</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; 106 -1.71303429  0.64048684 6.2980765    3</span></span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a><span class="co">#&gt; 107 -0.81595005 -0.03456059 5.4483791    4</span></span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a><span class="co">#&gt; 108  2.08297259 -0.78242332 4.1370603    5</span></span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="co">#&gt; 109  1.91584685  0.28597121 0.2817475    6</span></span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="fu">head</span>(data.vecm.ardl_2<span class="sc">$</span>diffdata)</span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a><span class="co">#&gt;      d_dep_1_0  d_ind_1_0  d_ind_2_0 time</span></span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="co">#&gt; 104 -0.7962310 -2.7284874  1.4603533    1</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="co">#&gt; 105  3.4764887 -1.2729227  2.4837480    2</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a><span class="co">#&gt; 106 -1.6555299 -0.5986356 -1.5698930    3</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a><span class="co">#&gt; 107  0.8970842 -0.6750474 -0.8496974    4</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a><span class="co">#&gt; 108  2.8989226 -0.7478627 -1.3113188    5</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a><span class="co">#&gt; 109 -0.1671257  1.0683945 -3.8553128    6</span></span></code></pre></div>
+<p>Notice that the index of the data starts from <tt>burn.in +
+length(gamma.in) + 1 </tt>.</p>
+<p>The following code plots the data and the first difference:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>df <span class="ot">=</span> data.vecm.ardl_2<span class="sc">$</span>data</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>meltdf <span class="ot">&lt;-</span> <span class="fu">melt</span>(df,<span class="at">id=</span><span class="st">&quot;time&quot;</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a><span class="fu">ggplot</span>(meltdf,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> time, <span class="at">y =</span> value, <span class="at">colour =</span> variable, <span class="at">group =</span> variable)) <span class="sc">+</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>       <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">&quot;CASE II - Level&quot;</span>) <span class="sc">+</span> <span class="fu">theme_bw</span>()</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>df <span class="ot">=</span> data.vecm.ardl_2<span class="sc">$</span>diffdata</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>meltdf <span class="ot">&lt;-</span> <span class="fu">melt</span>(df,<span class="at">id=</span><span class="st">&quot;time&quot;</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="fu">ggplot</span>(meltdf,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> time, <span class="at">y =</span> value, <span class="at">colour =</span> variable, <span class="at">group =</span> variable)) <span class="sc">+</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>       <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">&quot;CASE II - Diff&quot;</span>) <span class="sc">+</span> <span class="fu">theme_bw</span>()</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- -->
+To make the case in accordance with the intercept/trend specification
+for Case III/IV/V, respectively:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a><span class="co"># case III</span></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>case <span class="ot">=</span> <span class="dv">3</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>mu.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>eta.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>azero.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>aone.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a></span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a><span class="co"># case IV</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>case <span class="ot">=</span> <span class="dv">4</span></span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>mu.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>eta.in <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.6</span>,<span class="fl">0.6</span>,<span class="fl">0.6</span>)</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>azero.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>)</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>aone.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="co"># case V</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>case <span class="ot">=</span> <span class="dv">5</span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>mu.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>eta.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">0</span>)</span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a>azero.in <span class="ot">=</span> <span class="fu">c</span>(<span class="dv">2</span>,<span class="dv">2</span>,<span class="dv">2</span>)</span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>aone.in <span class="ot">=</span> <span class="fu">c</span>(<span class="fl">0.6</span>,<span class="fl">0.6</span>,<span class="fl">0.6</span>)</span></code></pre></div>
+</div>
+<div id="bootstrapping-the-ardl-test-for-cointegration" class="section level2">
+<h2>Bootstrapping the ARDL test for cointegration</h2>
+<p>The usual test based on the conditional ARDL model examines the
+following null hypotheses:</p>
+<p><span class="math display">\[
+H_0^{F_{ov}}: a_{yy}=0\enspace\cap \enspace\widetilde{\mathbf
+a}_{y.x}=\mathbf 0
+\]</span> <span class="math display">\[
+H_0^{F_{ind}}: \widetilde{\mathbf a}_{y.x}=\mathbf 0\qquad
+\text{(Degeneracy of first type)}
+\]</span></p>
+<p><span class="math display">\[
+H_0^{t}: a_{yy}=0 \qquad \text{(Degeneracy of second type)}
+\]</span> Note that a form of spurious cointegration can occur, since
+<span class="math inline">\(\widetilde{\mathbf a}_{y.x} = \mathbf
+a_{y.x} - \boldsymbol\omega&#39;\mathbf A_{xx}\)</span>.</p>
+<p>If <span class="math inline">\(H_0^{F_{ind}}\)</span> is rejected, it
+might be that <span class="math inline">\(\mathbf a_{y.x} = \mathbf
+0\)</span>, while <span class="math inline">\(\boldsymbol\omega&#39;\mathbf A_{xx} \neq \mathbf
+0\)</span>. In that case, no cointegration is really in place.</p>
+<p>For this reason, the <span class="math inline">\(F_{ind}\)</span>
+test must be performed also in the unconditional ARDL model (UC), that
+is the one omitting instantaneous differences of the independent
+variables from the equation (<span class="math inline">\(\Delta\mathbf
+x_t\)</span>), along with their coefficient <span class="math inline">\(\boldsymbol\omega&#39;\)</span>. Its null
+hypothesis is</p>
+<p><span class="math display">\[
+H_{0,UC}^{F_{ind}}: {\mathbf a}_{yx}=\mathbf 0
+\]</span> On the model</p>
+<p><span class="math display">\[
+\Delta y_{t}=\alpha_{0.y}+\alpha_{1.y}t -a_{yy}EC_{t-1}+
+\sum_{j=1}^{p-1}\boldsymbol{\gamma}&#39;_{y.x,j}\Delta\mathbf{z}_{t-j}+\nu_{yt}
+\]</span> in which <span class="math inline">\(\boldsymbol{\theta}&#39;=-\frac{{\mathbf{a}&#39;}_{yx}}{a_{yy}}\)</span>.</p>
+<p>The usual testing framework in Pesaran (2001) employs the ARDL bound
+test on the conditional model for <span class="math inline">\(F_{ov}\)</span> and <span class="math inline">\(t\)</span>, while Goh et al. (2017) derived the
+bound test for <span class="math inline">\(F_{ind}\)</span>.
+However:</p>
+<ul>
+<li>The <span class="math inline">\(t\)</span> and <span class="math inline">\(F_{ind}\)</span> tests are available only for Case
+I-III-V</li>
+<li>Bound tests may lead to inconclusive results</li>
+</ul>
+<p>For this reason, Bertelli et al. (2022) derived a comprehensive
+bootstrap framework to analyze ARDL-based cointegration.</p>
+<p>In order to perform this bootrap version, the usual “bootstrap
+ingredients” are necessary</p>
+<ul>
+<li>The test statistics coming from the original data: <span class="math inline">\(F_{ov}\)</span>, <span class="math inline">\(t\)</span>, <span class="math inline">\(F_{ind}\)</span> and <span class="math inline">\(F_{ind,UC}\)</span>.</li>
+<li>A sampling scheme on the original data.</li>
+<li>The simulated bootstrap distribution of each statistic under its
+respective null hypothesis, of which the critical quantiles <span class="math inline">\(c^*_{\alpha,T}\)</span> are calculated.</li>
+</ul>
+<p>This bootstrap procedure does the following:</p>
+<ul>
+<li><p>In calculating the test statistics, the most appropriate model in
+the estimation phase for both the ARDL and VECM models has to be chosen.
+This can either be imposed by the user or automatically detected via
+information criteria</p></li>
+<li><p>In deriving the bootstrap distribution of the statistics under
+each null, the marginal VECM model remains unaltered, while the ARDL
+model is re-estimated imposing the particular null hypothesis under
+examination (i.e., discarding the variables related to <span class="math inline">\(a_{yy}\)</span>, <span class="math inline">\(\widetilde{\mathbf a}_{y.x}\)</span>, or both).
+Thus, the residuals of the ARDL and VECM models are calculated.
+Naturally, for the <span class="math inline">\(F_{ind,UC}\)</span>
+model, the restriction applies to <span class="math inline">\({\mathbf
+a}_{yx}\)</span>.</p></li>
+<li><p>In each bootstrap iteration, a random sample from the residuals
+is extracted (of the same length of the original data), and synthetic
+data is generated using the estimates obtained under each null. Finally
+the bootstrap version <span class="math inline">\(F^{(b)}_{ov}\)</span>,
+<span class="math inline">\(t^{(b)}\)</span> and <span class="math inline">\(F^{(b)}_{ind}\)</span> is calculated and stored,
+for <span class="math inline">\(b = 1,\dots,B\)</span>. <span class="math inline">\(F^{(b)}_{ind,UC}\)</span> is also calculated if
+appropriate.</p></li>
+<li><p>Bootstrap critical quantiles are calculated, and decision on each
+test is based on the comparison between said critical value and the
+statistic in the original data. Notably, the <span class="math inline">\(F_{ind,UC}\)</span> and its bootstrap distribution
+under the null are calculated only when it is mandatory to detect
+spurious cointegration.</p></li>
+</ul>
+</div>
+<div id="the-boot_ardl-function" class="section level2">
+<h2>The <tt>boot_ardl</tt> function</h2>
+<p>We use the German macroeconomic dataset of Lutkepohl (2007). We start
+by loading the data and visualizing it - also in first difference</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a><span class="fu">data</span>(<span class="st">&quot;ger_macro&quot;</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a></span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a><span class="co"># Data preparation (log-transform)</span></span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>LNDATA <span class="ot">=</span> <span class="fu">apply</span>(ger_macro[,<span class="sc">-</span><span class="dv">1</span>], <span class="dv">2</span>, log)</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>col_ln <span class="ot">=</span> <span class="fu">paste0</span>(<span class="st">&quot;LN&quot;</span>, <span class="fu">colnames</span>(ger_macro)[<span class="sc">-</span><span class="dv">1</span>])</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>LNDATA <span class="ot">=</span> <span class="fu">as.data.frame</span>(LNDATA)</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a><span class="fu">colnames</span>(LNDATA) <span class="ot">=</span> col_ln</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>LNDATA <span class="ot">=</span> LNDATA <span class="sc">%&gt;%</span> <span class="fu">select</span>(LNCONS, LNINCOME, LNINVEST)</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>LNDATA<span class="sc">$</span>DATE <span class="ot">=</span> ger_macro<span class="sc">$</span>DATE</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a></span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a><span class="co"># First difference</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>lagdf1 <span class="ot">=</span> <span class="fu">lag_mts</span>(<span class="fu">as.matrix</span>(LNDATA[,<span class="sc">-</span><span class="dv">4</span>]), <span class="at">k =</span> <span class="fu">c</span>(<span class="dv">1</span>,<span class="dv">1</span>,<span class="dv">1</span>))</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>DIFF.LNDATA <span class="ot">=</span> <span class="fu">na.omit</span>(LNDATA[,<span class="sc">-</span><span class="dv">4</span>] <span class="sc">-</span> lagdf1)</span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a><span class="fu">colnames</span>(DIFF.LNDATA) <span class="ot">=</span> <span class="fu">paste0</span>(<span class="st">&quot;D_&quot;</span>, <span class="fu">colnames</span>(LNDATA)[<span class="sc">-</span><span class="dv">4</span>])</span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>DIFF.LNDATA<span class="sc">$</span>DATE <span class="ot">=</span> ger_macro<span class="sc">$</span>DATE[<span class="sc">-</span><span class="dv">1</span>]</span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a></span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="co"># Graphs</span></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a>dfmelt <span class="ot">=</span> <span class="fu">melt</span>(LNDATA, <span class="at">id =</span> <span class="st">&quot;DATE&quot;</span>)</span>
+<span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a>dfmelt <span class="ot">=</span> dfmelt<span class="sc">%&gt;%</span><span class="fu">arrange</span>(variable,DATE)</span>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>diff.dfmelt <span class="ot">=</span> <span class="fu">melt</span>(DIFF.LNDATA, <span class="at">id =</span> <span class="st">&quot;DATE&quot;</span>)</span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>diff.dfmelt <span class="ot">=</span> diff.dfmelt<span class="sc">%&gt;%</span><span class="fu">arrange</span>(variable,DATE)</span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="fu">ggplot</span>(dfmelt,</span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> DATE, <span class="at">y =</span> value, <span class="at">colour =</span> variable, <span class="at">group =</span> variable)) <span class="sc">+</span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">&quot;Level Variables (log-scale)&quot;</span>) <span class="sc">+</span> <span class="fu">theme_bw</span>()</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- --></p>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a></span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a><span class="fu">ggplot</span>(diff.dfmelt,</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>       <span class="fu">aes</span>(<span class="at">x =</span> DATE, <span class="at">y =</span> value, <span class="at">colour =</span> variable, <span class="at">group =</span> variable)) <span class="sc">+</span></span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="fu">geom_line</span>() <span class="sc">+</span> <span class="fu">ggtitle</span>(<span class="st">&quot;Diff. Variables (log-scale)&quot;</span>) <span class="sc">+</span> <span class="fu">theme_bw</span>()</span></code></pre></div>
+<p><img src="data:image/png;base64,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" /><!-- -->
+Calling the function using <tt>CONS</tt> as the dependent variable:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>BCT_res_CONS <span class="ot">=</span> <span class="fu">boot_ardl</span>(<span class="at">data =</span> LNDATA,</span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a>                         <span class="at">yvar =</span> <span class="st">&quot;LNCONS&quot;</span>,</span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>                         <span class="at">xvar =</span> <span class="fu">c</span>(<span class="st">&quot;LNINCOME&quot;</span>,<span class="st">&quot;LNINVEST&quot;</span>),</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a>                         <span class="at">case =</span> <span class="dv">3</span>,</span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a>                         <span class="at">fix.ardl =</span> <span class="cn">NULL</span>,</span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>                         <span class="at">info.ardl =</span> <span class="st">&quot;AIC&quot;</span>,</span>
+<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>                         <span class="at">fix.vecm =</span> <span class="cn">NULL</span>,</span>
+<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>                         <span class="at">info.vecm =</span> <span class="st">&quot;AIC&quot;</span>,</span>
+<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>                         <span class="at">maxlag =</span> <span class="dv">5</span>,</span>
+<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>                         <span class="at">a.ardl =</span> <span class="fl">0.1</span>,</span>
+<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>                         <span class="at">a.vecm =</span> <span class="fl">0.1</span>,</span>
+<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>                         <span class="at">nboot =</span> <span class="dv">2000</span>,</span>
+<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>                         <span class="at">a.boot.H0 =</span> <span class="fu">c</span>(<span class="fl">0.01</span>,<span class="fl">0.05</span>,<span class="fl">0.1</span>),</span>
+<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>                         <span class="at">print =</span> F)</span></code></pre></div>
+<p>Notably, the parameters <tt>fix.vecm</tt> and <tt>fix.ardl</tt> are
+blank, meaning that the estimation phase is dealt with via an automatic
+procedure that selects the best lag order for the short-run parameters
+employing common information criteria such as the AIC, BIC, SC, FPE,
+etc. In this case, the parameters identifying the criteria,
+</tt>info.vecm</tt> and <tt>info.ardl</tt> are also null, which in turn
+triggers the AIC as default value. The parameter <tt>maxlag</tt> sets
+the maximum possible value in the lag search. Secondly, the parameters
+<tt>a.vecm</tt> and <tt>a.ardl</tt> set the significance threshold for
+each of the single parameters in the short-run part of the model
+equation for the VECM and ARDL models, respectively. Coefficients for
+which the <span class="math inline">\(p\)</span>-value is greater than
+this latter threshold are discarded. The argument <tt>a.boot.H0</tt>
+sets the significance levels for which critical values of the bootstrap
+distribution under the null of <span class="math inline">\(F_{ov}\)</span>, <span class="math inline">\(t\)</span>, <span class="math inline">\(F_{ind}\)</span> and <span class="math inline">\(F_{ind,UC}\)</span> (if appropriate) are
+calculated, using <tt>nboot</tt> residual bootstrap replicates.</p>
+<p>A summary method can be called to visualize subsets of the
+output:</p>
+<ul>
+<li>The conditional ARDL model estimates</li>
+</ul>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a><span class="fu">summary</span>(BCT_res_CONS, <span class="at">out=</span><span class="st">&quot;ARDL&quot;</span>)</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="co">#&gt; CONDITIONAL ARDL MODEL</span></span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a><span class="co">#&gt; lm(formula = formula.ardlx, data = na.omit(df.ardl.l[[cond]]))</span></span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a><span class="co">#&gt; Residuals:</span></span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a><span class="co">#&gt;        Min         1Q     Median         3Q        Max </span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a><span class="co">#&gt; -0.0152061 -0.0050872  0.0003464  0.0037709  0.0242904 </span></span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a><span class="co">#&gt; Coefficients:</span></span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="co">#&gt;              Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a><span class="co">#&gt; (Intercept)  0.048190   0.012652   3.809 0.000267 ***</span></span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a><span class="co">#&gt; LNCONS.l1   -0.306508   0.054653  -5.608 2.62e-07 ***</span></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="co">#&gt; LNINCOME.l1  0.296537   0.054579   5.433 5.42e-07 ***</span></span>
+<span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a><span class="co">#&gt; LNINVEST.l1 -0.001366   0.011320  -0.121 0.904253    </span></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="co">#&gt; D_LNCONS.l1 -0.247543   0.078653  -3.147 0.002289 ** </span></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a><span class="co">#&gt; D_LNINCOME   0.470633   0.073736   6.383 9.45e-09 ***</span></span>
+<span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a><span class="co">#&gt; D_LNINVEST   0.065370   0.019326   3.382 0.001098 ** </span></span>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 0.00773 on 83 degrees of freedom</span></span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="co">#&gt; Multiple R-squared:  0.5405, Adjusted R-squared:  0.5072 </span></span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="co">#&gt; F-statistic: 16.27 on 6 and 83 DF,  p-value: 2.724e-12</span></span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a><span class="co">#&gt; BEST LAG ORDER FOR LAGGED DIFFERENCES</span></span>
+<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb14-30"><a href="#cb14-30" tabindex="-1"></a><span class="co">#&gt;     Series lag_dz</span></span>
+<span id="cb14-31"><a href="#cb14-31" tabindex="-1"></a><span class="co">#&gt; 1   LNCONS      1</span></span>
+<span id="cb14-32"><a href="#cb14-32" tabindex="-1"></a><span class="co">#&gt; 2 LNINCOME      0</span></span>
+<span id="cb14-33"><a href="#cb14-33" tabindex="-1"></a><span class="co">#&gt; 3 LNINVEST      0</span></span></code></pre></div>
+<p>The lagged levels of <tt>LNCONS</tt> and <tt>LNINCOME</tt> are
+significant, hinting a possible cointegrating relationship. The
+estimates of the instantaneous differences of <tt>LNINCOME</tt> and
+<tt>LNINVEST</tt> (i.e., the parameters in <span class="math inline">\(\boldsymbol\omega&#39;\)</span>) are also
+significant. Only the one-lagged difference of <tt>LNCONS</tt> is
+significant.</p>
+<ul>
+<li>The VECM model estimates (displayed also for <tt>LNCONS</tt> for the
+sake of completeness)</li>
+</ul>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a><span class="fu">summary</span>(BCT_res_CONS, <span class="at">out=</span><span class="st">&quot;VECM&quot;</span>)</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="co">#&gt; UNCONDITIONAL VECM MODEL</span></span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a><span class="co">#&gt; VAR Estimation Results:</span></span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a><span class="co">#&gt; ========================= </span></span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a><span class="co">#&gt; Endogenous variables: D_LNCONS, D_LNINCOME, D_LNINVEST </span></span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a><span class="co">#&gt; Deterministic variables: const </span></span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a><span class="co">#&gt; Sample size: 89 </span></span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a><span class="co">#&gt; Log Likelihood: 749.335 </span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a><span class="co">#&gt; Roots of the characteristic polynomial:</span></span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="co">#&gt; 0.5783 0.449 0.449 0.4405 0.3425 0.3425</span></span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="co">#&gt; Call:</span></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a><span class="co">#&gt; vars::VAR(y = na.omit(dlag0), p = vecmsel, type = typevecm, exogen = na.omit(lagdata))</span></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a><span class="co">#&gt; Estimation results for equation D_LNCONS: </span></span>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a><span class="co">#&gt; ========================================= </span></span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a><span class="co">#&gt; D_LNCONS = D_LNINCOME.l2 + D_LNINVEST.l2 + const + LNCONS.l1 + LNINCOME.l1 + LNINVEST.l1 </span></span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)    </span></span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="co">#&gt; D_LNINCOME.l2  0.16351    0.09243   1.769 0.080572 .  </span></span>
+<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a><span class="co">#&gt; D_LNINVEST.l2  0.06112    0.02272   2.690 0.008633 ** </span></span>
+<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a><span class="co">#&gt; const          0.05221    0.01577   3.311 0.001377 ** </span></span>
+<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a><span class="co">#&gt; LNCONS.l1     -0.27421    0.07058  -3.885 0.000205 ***</span></span>
+<span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a><span class="co">#&gt; LNINCOME.l1    0.27269    0.06950   3.923 0.000179 ***</span></span>
+<span id="cb15-26"><a href="#cb15-26" tabindex="-1"></a><span class="co">#&gt; LNINVEST.l1   -0.01094    0.01337  -0.819 0.415375    </span></span>
+<span id="cb15-27"><a href="#cb15-27" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb15-28"><a href="#cb15-28" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb15-29"><a href="#cb15-29" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-30"><a href="#cb15-30" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-31"><a href="#cb15-31" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 0.009436 on 83 degrees of freedom</span></span>
+<span id="cb15-32"><a href="#cb15-32" tabindex="-1"></a><span class="co">#&gt; Multiple R-Squared: 0.8216,  Adjusted R-squared: 0.8087 </span></span>
+<span id="cb15-33"><a href="#cb15-33" tabindex="-1"></a><span class="co">#&gt; F-statistic: 63.72 on 6 and 83 DF,  p-value: &lt; 2.2e-16 </span></span>
+<span id="cb15-34"><a href="#cb15-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-35"><a href="#cb15-35" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-36"><a href="#cb15-36" tabindex="-1"></a><span class="co">#&gt; Estimation results for equation D_LNINCOME: </span></span>
+<span id="cb15-37"><a href="#cb15-37" tabindex="-1"></a><span class="co">#&gt; =========================================== </span></span>
+<span id="cb15-38"><a href="#cb15-38" tabindex="-1"></a><span class="co">#&gt; D_LNINCOME = D_LNCONS.l1 + D_LNINVEST.l1 + D_LNINVEST.l2 + const + LNINCOME.l1 + LNINVEST.l1 </span></span>
+<span id="cb15-39"><a href="#cb15-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-40"><a href="#cb15-40" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
+<span id="cb15-41"><a href="#cb15-41" tabindex="-1"></a><span class="co">#&gt; D_LNCONS.l1    0.21122    0.11311   1.867   0.0654 .</span></span>
+<span id="cb15-42"><a href="#cb15-42" tabindex="-1"></a><span class="co">#&gt; D_LNINVEST.l1  0.03549    0.02941   1.207   0.2310  </span></span>
+<span id="cb15-43"><a href="#cb15-43" tabindex="-1"></a><span class="co">#&gt; D_LNINVEST.l2  0.04951    0.02749   1.801   0.0753 .</span></span>
+<span id="cb15-44"><a href="#cb15-44" tabindex="-1"></a><span class="co">#&gt; const          0.03345    0.01655   2.021   0.0465 *</span></span>
+<span id="cb15-45"><a href="#cb15-45" tabindex="-1"></a><span class="co">#&gt; LNINCOME.l1   -0.01668    0.01422  -1.173   0.2442  </span></span>
+<span id="cb15-46"><a href="#cb15-46" tabindex="-1"></a><span class="co">#&gt; LNINVEST.l1    0.01622    0.01652   0.982   0.3291  </span></span>
+<span id="cb15-47"><a href="#cb15-47" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb15-48"><a href="#cb15-48" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb15-49"><a href="#cb15-49" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-50"><a href="#cb15-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-51"><a href="#cb15-51" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 0.01106 on 83 degrees of freedom</span></span>
+<span id="cb15-52"><a href="#cb15-52" tabindex="-1"></a><span class="co">#&gt; Multiple R-Squared: 0.7722,  Adjusted R-squared: 0.7558 </span></span>
+<span id="cb15-53"><a href="#cb15-53" tabindex="-1"></a><span class="co">#&gt; F-statistic:  46.9 on 6 and 83 DF,  p-value: &lt; 2.2e-16 </span></span>
+<span id="cb15-54"><a href="#cb15-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-55"><a href="#cb15-55" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-56"><a href="#cb15-56" tabindex="-1"></a><span class="co">#&gt; Estimation results for equation D_LNINVEST: </span></span>
+<span id="cb15-57"><a href="#cb15-57" tabindex="-1"></a><span class="co">#&gt; =========================================== </span></span>
+<span id="cb15-58"><a href="#cb15-58" tabindex="-1"></a><span class="co">#&gt; D_LNINVEST = D_LNCONS.l1 + D_LNINVEST.l1 + D_LNCONS.l2 + const + LNINCOME.l1 + LNINVEST.l1 </span></span>
+<span id="cb15-59"><a href="#cb15-59" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-60"><a href="#cb15-60" tabindex="-1"></a><span class="co">#&gt;               Estimate Std. Error t value Pr(&gt;|t|)  </span></span>
+<span id="cb15-61"><a href="#cb15-61" tabindex="-1"></a><span class="co">#&gt; D_LNCONS.l1    0.89879    0.44170   2.035   0.0451 *</span></span>
+<span id="cb15-62"><a href="#cb15-62" tabindex="-1"></a><span class="co">#&gt; D_LNINVEST.l1 -0.18040    0.11117  -1.623   0.1084  </span></span>
+<span id="cb15-63"><a href="#cb15-63" tabindex="-1"></a><span class="co">#&gt; D_LNCONS.l2    0.74424    0.43099   1.727   0.0879 .</span></span>
+<span id="cb15-64"><a href="#cb15-64" tabindex="-1"></a><span class="co">#&gt; const          0.03621    0.06580   0.550   0.5836  </span></span>
+<span id="cb15-65"><a href="#cb15-65" tabindex="-1"></a><span class="co">#&gt; LNINCOME.l1    0.12380    0.05390   2.297   0.0241 *</span></span>
+<span id="cb15-66"><a href="#cb15-66" tabindex="-1"></a><span class="co">#&gt; LNINVEST.l1   -0.15237    0.06258  -2.435   0.0170 *</span></span>
+<span id="cb15-67"><a href="#cb15-67" tabindex="-1"></a><span class="co">#&gt; ---</span></span>
+<span id="cb15-68"><a href="#cb15-68" tabindex="-1"></a><span class="co">#&gt; Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</span></span>
+<span id="cb15-69"><a href="#cb15-69" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-70"><a href="#cb15-70" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-71"><a href="#cb15-71" tabindex="-1"></a><span class="co">#&gt; Residual standard error: 0.04289 on 83 degrees of freedom</span></span>
+<span id="cb15-72"><a href="#cb15-72" tabindex="-1"></a><span class="co">#&gt; Multiple R-Squared: 0.2557,  Adjusted R-squared: 0.2019 </span></span>
+<span id="cb15-73"><a href="#cb15-73" tabindex="-1"></a><span class="co">#&gt; F-statistic: 4.751 on 6 and 83 DF,  p-value: 0.0003303 </span></span>
+<span id="cb15-74"><a href="#cb15-74" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-75"><a href="#cb15-75" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-76"><a href="#cb15-76" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-77"><a href="#cb15-77" tabindex="-1"></a><span class="co">#&gt; Covariance matrix of residuals:</span></span>
+<span id="cb15-78"><a href="#cb15-78" tabindex="-1"></a><span class="co">#&gt;             D_LNCONS D_LNINCOME D_LNINVEST</span></span>
+<span id="cb15-79"><a href="#cb15-79" tabindex="-1"></a><span class="co">#&gt; D_LNCONS   9.354e-05  5.932e-05  1.615e-04</span></span>
+<span id="cb15-80"><a href="#cb15-80" tabindex="-1"></a><span class="co">#&gt; D_LNINCOME 5.932e-05  1.286e-04  6.811e-05</span></span>
+<span id="cb15-81"><a href="#cb15-81" tabindex="-1"></a><span class="co">#&gt; D_LNINVEST 1.615e-04  6.811e-05  1.933e-03</span></span>
+<span id="cb15-82"><a href="#cb15-82" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb15-83"><a href="#cb15-83" tabindex="-1"></a><span class="co">#&gt; Correlation matrix of residuals:</span></span>
+<span id="cb15-84"><a href="#cb15-84" tabindex="-1"></a><span class="co">#&gt;            D_LNCONS D_LNINCOME D_LNINVEST</span></span>
+<span id="cb15-85"><a href="#cb15-85" tabindex="-1"></a><span class="co">#&gt; D_LNCONS     1.0000     0.5409     0.3799</span></span>
+<span id="cb15-86"><a href="#cb15-86" tabindex="-1"></a><span class="co">#&gt; D_LNINCOME   0.5409     1.0000     0.1366</span></span>
+<span id="cb15-87"><a href="#cb15-87" tabindex="-1"></a><span class="co">#&gt; D_LNINVEST   0.3799     0.1366     1.0000</span></span></code></pre></div>
+<ul>
+<li>The Johansen test for cointegration on the independent
+variables</li>
+</ul>
+<div class="sourceCode" id="cb16"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" tabindex="-1"></a><span class="fu">summary</span>(BCT_res_CONS, <span class="at">out=</span><span class="st">&quot;cointVECM&quot;</span>)</span>
+<span id="cb16-2"><a href="#cb16-2" tabindex="-1"></a><span class="co">#&gt; VECM MODEL JOHANSEN COINTEGRATION TESTS</span></span>
+<span id="cb16-3"><a href="#cb16-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-4"><a href="#cb16-4" tabindex="-1"></a><span class="co">#&gt; Test type: trace statistic , with linear trend </span></span>
+<span id="cb16-5"><a href="#cb16-5" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-6"><a href="#cb16-6" tabindex="-1"></a><span class="co">#&gt; Eigenvalues (lambda):</span></span>
+<span id="cb16-7"><a href="#cb16-7" tabindex="-1"></a><span class="co">#&gt; [1] 0.07694993 0.02379754</span></span>
+<span id="cb16-8"><a href="#cb16-8" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-9"><a href="#cb16-9" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-10"><a href="#cb16-10" tabindex="-1"></a><span class="co">#&gt; Values of test statistic and critical values of test:</span></span>
+<span id="cb16-11"><a href="#cb16-11" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-12"><a href="#cb16-12" tabindex="-1"></a><span class="co">#&gt;          test 10pct  5pct  1pct</span></span>
+<span id="cb16-13"><a href="#cb16-13" tabindex="-1"></a><span class="co">#&gt; r &lt;= 1 | 2.14  6.50  8.18 11.65</span></span>
+<span id="cb16-14"><a href="#cb16-14" tabindex="-1"></a><span class="co">#&gt; r = 0  | 9.27 15.66 17.95 23.52</span></span>
+<span id="cb16-15"><a href="#cb16-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-16"><a href="#cb16-16" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-17"><a href="#cb16-17" tabindex="-1"></a><span class="co">#&gt; Eigenvectors, normalised to first column:</span></span>
+<span id="cb16-18"><a href="#cb16-18" tabindex="-1"></a><span class="co">#&gt; (These are the cointegration relations)</span></span>
+<span id="cb16-19"><a href="#cb16-19" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-20"><a href="#cb16-20" tabindex="-1"></a><span class="co">#&gt;             LNINCOME.l1 LNINVEST.l1</span></span>
+<span id="cb16-21"><a href="#cb16-21" tabindex="-1"></a><span class="co">#&gt; LNINCOME.l1    1.000000    1.000000</span></span>
+<span id="cb16-22"><a href="#cb16-22" tabindex="-1"></a><span class="co">#&gt; LNINVEST.l1   -1.155814    1.416763</span></span>
+<span id="cb16-23"><a href="#cb16-23" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-24"><a href="#cb16-24" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-25"><a href="#cb16-25" tabindex="-1"></a><span class="co">#&gt; Weights W:</span></span>
+<span id="cb16-26"><a href="#cb16-26" tabindex="-1"></a><span class="co">#&gt; (This is the loading matrix)</span></span>
+<span id="cb16-27"><a href="#cb16-27" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-28"><a href="#cb16-28" tabindex="-1"></a><span class="co">#&gt;            LNINCOME.l1  LNINVEST.l1</span></span>
+<span id="cb16-29"><a href="#cb16-29" tabindex="-1"></a><span class="co">#&gt; LNINCOME.d -0.01610551 -0.001368126</span></span>
+<span id="cb16-30"><a href="#cb16-30" tabindex="-1"></a><span class="co">#&gt; LNINVEST.d  0.12129032 -0.003256883</span></span>
+<span id="cb16-31"><a href="#cb16-31" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-32"><a href="#cb16-32" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-33"><a href="#cb16-33" tabindex="-1"></a><span class="co">#&gt; =======================================</span></span>
+<span id="cb16-34"><a href="#cb16-34" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-35"><a href="#cb16-35" tabindex="-1"></a><span class="co">#&gt; Test type: maximal eigenvalue statistic (lambda max) , with linear trend </span></span>
+<span id="cb16-36"><a href="#cb16-36" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-37"><a href="#cb16-37" tabindex="-1"></a><span class="co">#&gt; Eigenvalues (lambda):</span></span>
+<span id="cb16-38"><a href="#cb16-38" tabindex="-1"></a><span class="co">#&gt; [1] 0.07694993 0.02379754</span></span>
+<span id="cb16-39"><a href="#cb16-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-40"><a href="#cb16-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-41"><a href="#cb16-41" tabindex="-1"></a><span class="co">#&gt; Values of test statistic and critical values of test:</span></span>
+<span id="cb16-42"><a href="#cb16-42" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-43"><a href="#cb16-43" tabindex="-1"></a><span class="co">#&gt;          test 10pct  5pct  1pct</span></span>
+<span id="cb16-44"><a href="#cb16-44" tabindex="-1"></a><span class="co">#&gt; r &lt;= 1 | 2.14  6.50  8.18 11.65</span></span>
+<span id="cb16-45"><a href="#cb16-45" tabindex="-1"></a><span class="co">#&gt; r = 0  | 7.13 12.91 14.90 19.19</span></span>
+<span id="cb16-46"><a href="#cb16-46" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-47"><a href="#cb16-47" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-48"><a href="#cb16-48" tabindex="-1"></a><span class="co">#&gt; Eigenvectors, normalised to first column:</span></span>
+<span id="cb16-49"><a href="#cb16-49" tabindex="-1"></a><span class="co">#&gt; (These are the cointegration relations)</span></span>
+<span id="cb16-50"><a href="#cb16-50" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-51"><a href="#cb16-51" tabindex="-1"></a><span class="co">#&gt;             LNINCOME.l1 LNINVEST.l1</span></span>
+<span id="cb16-52"><a href="#cb16-52" tabindex="-1"></a><span class="co">#&gt; LNINCOME.l1    1.000000    1.000000</span></span>
+<span id="cb16-53"><a href="#cb16-53" tabindex="-1"></a><span class="co">#&gt; LNINVEST.l1   -1.155814    1.416763</span></span>
+<span id="cb16-54"><a href="#cb16-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-55"><a href="#cb16-55" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-56"><a href="#cb16-56" tabindex="-1"></a><span class="co">#&gt; Weights W:</span></span>
+<span id="cb16-57"><a href="#cb16-57" tabindex="-1"></a><span class="co">#&gt; (This is the loading matrix)</span></span>
+<span id="cb16-58"><a href="#cb16-58" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb16-59"><a href="#cb16-59" tabindex="-1"></a><span class="co">#&gt;            LNINCOME.l1  LNINVEST.l1</span></span>
+<span id="cb16-60"><a href="#cb16-60" tabindex="-1"></a><span class="co">#&gt; LNINCOME.d -0.01610551 -0.001368126</span></span>
+<span id="cb16-61"><a href="#cb16-61" tabindex="-1"></a><span class="co">#&gt; LNINVEST.d  0.12129032 -0.003256883</span></span></code></pre></div>
+<p>We accept the null <span class="math inline">\(r=0\)</span> for both
+the trace and eigenvalue tests, therefore the independent variables are
+not cointegrated.</p>
+<ul>
+<li>The ARDL bootstrap and bound tests</li>
+</ul>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">summary</span>(BCT_res_CONS, <span class="at">out=</span><span class="st">&quot;cointARDL&quot;</span>)</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a><span class="co">#&gt; Observations: 92 </span></span>
+<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a><span class="co">#&gt; Number of Lagged Regressors (not including LDV) (k):  2 </span></span>
+<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a><span class="co">#&gt; Case:  3 </span></span>
+<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------</span></span>
+<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a><span class="co">#&gt; -                         PSS    Fov-test                                -</span></span>
+<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------</span></span>
+<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="co">#&gt;                  &lt;------- I(0) ----- I(1) -----&gt;</span></span>
+<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a><span class="co">#&gt; 10% critical value        3.170       4.140 </span></span>
+<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a><span class="co">#&gt; 5% critical value         3.790       4.850 </span></span>
+<span id="cb17-14"><a href="#cb17-14" tabindex="-1"></a><span class="co">#&gt; 1% critical value         5.150       6.360 </span></span>
+<span id="cb17-15"><a href="#cb17-15" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-16"><a href="#cb17-16" tabindex="-1"></a><span class="co">#&gt; F-statistic =  10.751 </span></span>
+<span id="cb17-17"><a href="#cb17-17" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-18"><a href="#cb17-18" tabindex="-1"></a><span class="co">#&gt;      Bootstrap critical values</span></span>
+<span id="cb17-19"><a href="#cb17-19" tabindex="-1"></a><span class="co">#&gt;      1 %      5 %      10 % </span></span>
+<span id="cb17-20"><a href="#cb17-20" tabindex="-1"></a><span class="co">#&gt;    5.610     3.920     3.160 </span></span>
+<span id="cb17-21"><a href="#cb17-21" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-22"><a href="#cb17-22" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-23"><a href="#cb17-23" tabindex="-1"></a><span class="co">#&gt; Observations: 92 </span></span>
+<span id="cb17-24"><a href="#cb17-24" tabindex="-1"></a><span class="co">#&gt; Number of Lagged Regressors (not including LDV) (k):  2 </span></span>
+<span id="cb17-25"><a href="#cb17-25" tabindex="-1"></a><span class="co">#&gt; Case:  3 </span></span>
+<span id="cb17-26"><a href="#cb17-26" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------</span></span>
+<span id="cb17-27"><a href="#cb17-27" tabindex="-1"></a><span class="co">#&gt; -                          PSS    t-test                                 -</span></span>
+<span id="cb17-28"><a href="#cb17-28" tabindex="-1"></a><span class="co">#&gt; --------------------------------------------------------------------------</span></span>
+<span id="cb17-29"><a href="#cb17-29" tabindex="-1"></a><span class="co">#&gt;                   &lt;------- I(0) ----- I(1) -----&gt;</span></span>
+<span id="cb17-30"><a href="#cb17-30" tabindex="-1"></a><span class="co">#&gt; 10% critical value        -2.570      -3.210 </span></span>
+<span id="cb17-31"><a href="#cb17-31" tabindex="-1"></a><span class="co">#&gt; 5% critical value         -2.860      -3.530 </span></span>
+<span id="cb17-32"><a href="#cb17-32" tabindex="-1"></a><span class="co">#&gt; 1% critical value         -3.430      -4.100 </span></span>
+<span id="cb17-33"><a href="#cb17-33" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-34"><a href="#cb17-34" tabindex="-1"></a><span class="co">#&gt; t-statistic =  -5.608 </span></span>
+<span id="cb17-35"><a href="#cb17-35" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-36"><a href="#cb17-36" tabindex="-1"></a><span class="co">#&gt;      Bootstrap critical values</span></span>
+<span id="cb17-37"><a href="#cb17-37" tabindex="-1"></a><span class="co">#&gt;      1 %       5 %       10 % </span></span>
+<span id="cb17-38"><a href="#cb17-38" tabindex="-1"></a><span class="co">#&gt;    -3.580     -2.930     -2.610</span></span>
+<span id="cb17-39"><a href="#cb17-39" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-40"><a href="#cb17-40" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-41"><a href="#cb17-41" tabindex="-1"></a><span class="co">#&gt; Observations: 92 </span></span>
+<span id="cb17-42"><a href="#cb17-42" tabindex="-1"></a><span class="co">#&gt; Number of Lagged Regressors (not including LDV) (k):  2 </span></span>
+<span id="cb17-43"><a href="#cb17-43" tabindex="-1"></a><span class="co">#&gt; Case:  3 </span></span>
+<span id="cb17-44"><a href="#cb17-44" tabindex="-1"></a><span class="co">#&gt; -----------------------------------------------------------------------------</span></span>
+<span id="cb17-45"><a href="#cb17-45" tabindex="-1"></a><span class="co">#&gt; -                         SMG    FInd-test                                  -</span></span>
+<span id="cb17-46"><a href="#cb17-46" tabindex="-1"></a><span class="co">#&gt; -----------------------------------------------------------------------------</span></span>
+<span id="cb17-47"><a href="#cb17-47" tabindex="-1"></a><span class="co">#&gt;                  &lt;------- I(0) ----- I(1) -----&gt;</span></span>
+<span id="cb17-48"><a href="#cb17-48" tabindex="-1"></a><span class="co">#&gt; 10% critical value        2.31       4.33 </span></span>
+<span id="cb17-49"><a href="#cb17-49" tabindex="-1"></a><span class="co">#&gt; 5% critical value         3.01       5.42 </span></span>
+<span id="cb17-50"><a href="#cb17-50" tabindex="-1"></a><span class="co">#&gt; 2.5% critical value       3.74       6.42 </span></span>
+<span id="cb17-51"><a href="#cb17-51" tabindex="-1"></a><span class="co">#&gt; 1% critical value         4.71       7.68 </span></span>
+<span id="cb17-52"><a href="#cb17-52" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-53"><a href="#cb17-53" tabindex="-1"></a><span class="co">#&gt; F-statistic =  15.636 </span></span>
+<span id="cb17-54"><a href="#cb17-54" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb17-55"><a href="#cb17-55" tabindex="-1"></a><span class="co">#&gt;      Bootstrap critical values</span></span>
+<span id="cb17-56"><a href="#cb17-56" tabindex="-1"></a><span class="co">#&gt;      1 %      5 %      10 % </span></span>
+<span id="cb17-57"><a href="#cb17-57" tabindex="-1"></a><span class="co">#&gt;    7.760     4.970     4.030</span></span></code></pre></div>
+<p>This is the main output of the function. Since <tt>case=3</tt> all
+the bound tests can be performed. In this example, not only the
+statistics exceed the I(1) threshold on the bound tests, but they also
+exceed the bootstrap critical values reported at the bottom of each test
+result. Cointegration is thus confirmed between <tt>LNCONS</tt> and the
+other variables. No spurious (faux) cointegration is detected.</p>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

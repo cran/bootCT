@@ -71,13 +71,25 @@ This is the main function of the package. It performs the bootstrap version of t
 }
 \examples{
 \dontrun{
-data(ger_macro)
-LNDATA = as.data.frame(log(ger_macro[,-1]))
-colnames(LNDATA) = c("LNINVEST","LNINCOME","LNCONS")
-
-boot_res = boot_ardl(data=LNDATA,
-                     yvar = "LNINCOME", xvar = c("LNCONS","LNINVEST"),
-                     maxlag = 5, nboot = 2000)
+#LOAD DATA
+data("ger_macro")
+# DATA PREPARATION
+LNDATA = apply(ger_macro[,-1], 2, log)
+col_ln = paste0("LN", colnames(ger_macro)[-1])
+LNDATA = as.data.frame(LNDATA)
+colnames(LNDATA) = col_ln
+LNDATA$DATE = ger_macro$DATE
+#ARDL BOOT 
+BCT_res = boot_ardl(data = LNDATA,
+                   yvar = "LNCONS",
+                   xvar = c("LNINCOME","LNINVEST"),
+                   maxlag = 5,
+                   a.ardl = 0.1,
+                   a.vecm = 0.1,
+                   nboot = 2000,
+                   case = 3,
+                   a.boot.H0 = c(0.05),
+                   print = T)
 summary(boot_res)
 }
 }

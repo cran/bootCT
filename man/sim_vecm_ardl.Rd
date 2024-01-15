@@ -7,15 +7,15 @@
 sim_vecm_ardl(
   nobs,
   case = 1,
-  sigma.in = diag(3),
+  sigma.in,
   gamma.in,
   axx.in,
   ayx.uc.in,
   ayy.in,
-  mu.in,
-  eta.in,
-  azero.in,
-  aone.in,
+  mu.in = NULL,
+  eta.in = NULL,
+  azero.in = NULL,
+  aone.in = NULL,
   burn.in = nobs * 0.5,
   seed.in = NULL
 )
@@ -31,8 +31,8 @@ sim_vecm_ardl(
 
 \item{axx.in}{long-run relationships between the independent variables \eqn{\mathbf A_{xx}}}
 
-\item{ayx.uc.in}{long-run unconditional relationship between dependent and independent variables, \eqn{\mathbf a_{yx}^{(UC)}}.
-The second component ayxC, derived from conditioning, is calculated as\eqn{\mathbf a_{yx}^{(C)}= - \boldsymbol\omega'\mathbf A_{xx}}}
+\item{ayx.uc.in}{long-run unconditional relationship between dependent and independent variables, \eqn{\mathbf a_{yx}}.
+The second component ayxC, derived from conditioning, is calculated as \eqn{\mathbf a_{yx}^{(C)}= - \boldsymbol\omega'\mathbf A_{xx}}}
 
 \item{ayy.in}{long-run relationship for the dependent variable \eqn{a_{yy}}}
 
@@ -57,17 +57,25 @@ A list that includes \itemize{
 \item \code{ut}: the generated random error matrix.
 \item \code{sigma}: the error covariance matrix \eqn{\boldsymbol\Sigma}.
 \item \code{omega}: the \eqn{\boldsymbol\omega} vector of parameters generated via conditioning
-\item \code{at}: the conditional long-run parameter matrix \eqn{\tilde{\mathbf A}}
-\item \code{ayx1}: the unconditional subvector of the ARDL equation \eqn{\mathbf a_{y.x}^{UC}}
-\item \code{ayx}: the conditional subvector of the ARDL equation \eqn{a_{y.x}=a_{y.x}^{UC}-\omega'A_{xx}}
+\item \code{at}: the conditional long-run parameter matrix \eqn{\widetilde{\mathbf A}}
+\item \code{ayy}: the coefficient weighting the EC term, \eqn{a_{yy}}
+\item \code{ayx.uc}: the unconditional subvector of the ARDL equation \eqn{\mathbf a_{yx}}
+\item \code{ayx2}: the conditioning effect \eqn{\omega'A_{xx}}
+\item \code{ayx.c}: the conditional subvector of the ARDL equation \eqn{\widetilde{a}_{y.x}=a_{yx}-\omega'A_{xx}}
 \item \code{gammalist}: the list of unconditional \eqn{\boldsymbol\Gamma_j} parameter matrices
-\item \code{psilist}: the list of conditional \eqn{\boldsymbol\psi_{y.x,j}} parameter matrices
-\item \code{azero}: the unconditional VECM intercept
-\item \code{interc.ardl}: the conditional ARDL intercept
-\item \code{aone}: the unconditional VECM trend
-\item \code{interc.ardl}: the conditional ARDL trend
-\item \code{vmu}: the VAR intercept
-\item \code{veta}: the VAR trend}
+\item \code{psilist}: the list of conditional \eqn{\boldsymbol\gamma_{y.x,j}} parameter matrices
+\item \code{vmu}: the VAR intercept \eqn{\boldsymbol\mu}
+\item \code{veta}: the VAR trend \eqn{\boldsymbol\eta}
+\item \code{azero}: the unconditional VECM intercept \eqn{\boldsymbol\alpha_0}
+\item \code{aone}: the unconditional VECM trend \eqn{\boldsymbol\alpha_1}
+\item \code{azero.c}: the conditional VECM intercept \eqn{\boldsymbol\alpha_0^c}
+\item \code{aone.c}: the conditional VECM trend \eqn{\boldsymbol\alpha_1^c}
+\item \code{interc.ardl}: the conditional ARDL intercept \eqn{\alpha_{0.y}} (case > 2)
+\item \code{trend.ardl}: the conditional ARDL trend \eqn{\alpha_{1.y}} (case = 5)
+\item \code{theta0}: the \eqn{\theta_0} coefficient in the EC term (case = 2)
+\item \code{theta1}: the \eqn{\theta_1} coefficient in the EC term (case = 4)
+\item \code{interc.ec}: the conditional ARDL intercept derived from the EC tem \eqn{\alpha^{EC}_{0.y}} (case = 2)
+\item \code{trend.ec}: the conditional ARDL trend derived from the EC tem \eqn{\alpha^{EC}_{1.y}} (case = 4)}
 }
 \description{
 Generate data from a VECM/ARDL equation
@@ -97,7 +105,7 @@ data_sim = sim_vecm_ardl(nobs = 200,
                          axx.in = matrix(c(0.3, 0.5, 0.4, 0.3), nrow = 2, ncol = 2),
                          ayx.uc.in = c(0.5,0.6),
                          ayy.in = 0.7,
-                         mu.in = rep(0.3, 3),
+                         mu.in = rep(0, 3),
                          eta.in = rep(0, 3),
                          azero.in = rep(0.4, 3),
                          aone.in = rep(0, 3),

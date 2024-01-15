@@ -4,10 +4,11 @@
 #'
 #' @param object an object of class "\code{bootCT}"
 #' @param ... additional arguments, e.g. \code{out}: subset of output to print. Options (can be multiple) are: "all", "ARDL", "VECM", "cointVECM", "cointARDL". Defaults to "all".
-#' @return the function returns a list of summary statistics, already present in the function \code{boot_ardl}, and displays them in an appropriate manner. Depending on the "out" argument, ARDL/VECM estimation outputs and/or ARDL/VECM cointegration tests can be displayed.
+#' @return the function returns a list of summary statistics, already present in the function \code{boot_ardl}, and displays them in an appropriate manner. Depending on the \code{out} argument, ARDL/VECM estimation outputs and/or ARDL/VECM cointegration tests can be displayed.
 #' @export
 summary.bootCT = function(object,
                           ...) {
+  X1 = X2 = Series = lag_dz = NULL
   arguments = list(...)
   names = names(arguments)
   
@@ -69,8 +70,35 @@ summary.bootCT = function(object,
   }
   
   if (out == "all" | any(out == "ARDL")) {
+    #PRINT BEST LAG ORDER FOR LAGGED DIFFERENCES 
+    
+    df_base = data.frame(Series = colnames(object$data), lag_dz = 0)
+    xi = c(names(coef(object$ARDL))[-1])
+    find_d = strsplit(xi, "_")
+    flag_d = unlist(lapply(find_d, function(x)length(which(x[1] == "D"))))
+    xi.d = xi[flag_d == 1]
+    find_l = strsplit(xi.d, ".l")
+    flag_l = unlist(lapply(find_l, length))
+    xi.dl = xi.d[flag_l > 1]
+    name_dl = (sub("D_", "", unlist(lapply(find_l, function(x)x[1]))[flag_l > 1]))
+    df_dl = data.frame(do.call(rbind, strsplit(xi.dl, ".l")))
+    colnames(df_dl)=c("X1","X2")
+    df_dl = df_dl %>% dplyr::arrange(X1)
+    df_dl$X2 = as.numeric(df_dl$X2)
+    maxlagd = df_dl %>%
+      dplyr::group_by(X1) %>%
+      dplyr::filter(X2 == max(X2))
+    uname = sort(unique(name_dl))
+    df_mlag = data.frame(Series = uname, lag_dz = maxlagd$X2)
+    df_final = dplyr::union(df_mlag,df_base) %>%
+      dplyr::group_by(Series) %>%
+      dplyr::filter(lag_dz == max(lag_dz)) %>%
+      dplyr::arrange(Series)
+    
     cat("CONDITIONAL ARDL MODEL\n")
     print(SUMMARY_ARDL)
+    cat("\nBEST LAG ORDER FOR LAGGED DIFFERENCES\n\n")
+    print(as.data.frame(df_final))
   }
   
   if (out == "all" | any(out == "VECM")) {
